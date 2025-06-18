@@ -39,6 +39,22 @@ android {
     }
 }
 
+
+dependencies {
+    implementation("com.shimmerresearch:shimmerbluetoothmanager:0.11.3_beta") {
+        exclude(group = "io.netty")
+        exclude(group = "com.google.protobuf")
+        exclude(group = "org.apache.commons.math")
+    }
+
+    implementation("com.shimmerresearch:shimmerdriver:0.11.3_beta") {
+        exclude(group = "io.netty")
+        exclude(group = "com.google.protobuf")
+    }
+
+    implementation("com.shimmerresearch:shimmerandroidinstrumentdriver:3.2.2_beta@aar")
+}
+
 flutter {
     source = "../.."
 }
