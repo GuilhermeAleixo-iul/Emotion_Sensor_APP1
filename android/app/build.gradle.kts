@@ -19,6 +19,20 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
+    packagingOptions {
+        resources.excludes.addAll(
+            listOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/ASL2.0"
+            )
+        )
+        resources.pickFirsts.add("**/libc++_shared.so")
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.app"
@@ -31,14 +45,46 @@ android {
     }
 
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+        getByName("release") {
             signingConfig = signingConfigs.getByName("debug")
+            packagingOptions {
+                resources.excludes.addAll(
+                    listOf(
+                        "META-INF/DEPENDENCIES",
+                        "META-INF/LICENSE",
+                        "META-INF/NOTICE"
+                    )
+                )
+            }
         }
     }
 }
 
-flutter {
-    source = "../.."
-}
+
+
+
+
+    dependencies {
+
+        implementation("com.shimmerresearch:shimmerbluetoothmanager:0.11.3_beta") {
+            exclude(group = "io.netty")
+            exclude(group = "com.google.protobuf")
+            exclude(group = "org.apache.commons.math")
+        }
+
+
+
+
+
+        implementation("com.shimmerresearch:shimmerdriver:0.11.3_beta") {
+            exclude(group = "io.netty")
+            exclude(group = "com.google.protobuf")
+        }
+
+
+        implementation("com.shimmerresearch:shimmerandroidinstrumentdriver:3.2.2_beta@aar")
+    }
+
+    flutter {
+        source = "../.."
+    }
