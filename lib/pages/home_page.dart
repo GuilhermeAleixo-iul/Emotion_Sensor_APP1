@@ -1,5 +1,6 @@
 import 'package:app/models/sensor_data.dart';
 import 'package:app/services/shimmer_service.dart';
+import 'package:app/widgets/sensor_data_linechart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -17,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   double accelX = 0.0;
   List<SensorData> _sensorDataList = []; // List to store sensor data
   double previousTimeStamp = 0.0;
-  int maxDataPoint = 10; // Maximum number of data points to display
+  int maxDataPoint = 30; // Maximum number of data points to display
 
   static const EventChannel event_channel = EventChannel(
     'com.example.emotion_sensor/shimmer/events',
@@ -67,14 +68,16 @@ class _HomePageState extends State<HomePage> {
           );
           if (sensorData.timeStamp! > previousTimeStamp + 200.0) {
             setState(() {
-              _sensorDataList.add(sensorData);
+              timeStamp = data['timeStamp'] as double;
+            accelX = data['accel'] as double;
+             _sensorDataList.add(sensorData) ;
+             if(_sensorDataList.length > maxDataPoint){
+              _sensorDataList.removeAt(0);
+             }
             });
             previousTimeStamp = sensorData.timeStamp!;
           }
-          setState(() {
-            timeStamp = data['timeStamp'] as double;
-            accelX = data['accel'] as double;
-          });
+          
         }
       }
     });
@@ -96,37 +99,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              height: 50,
-              child: ListView.builder(
-                itemCount: _sensorDataList.length,
-                itemBuilder: (context, index) {
-                  final item = _sensorDataList[index];
-                  return Row(
-                    children: [
-                      Column(
-                        children: [
-                          Text("TimeStamp"),
-                          Text(item.timeStamp.toString() ?? "N/A"),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text("Accel"),
-                          Text(item.accelX.toString() ?? "N/A"),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text("grs"),
-                          Text(item.grs.toString() ?? "N/A"),
-                        ],
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
+           Expanded(child: SensorDataLinechart(sensorDataList: _sensorDataList)),
             Icon(
               _isConnected
                   ? Icons.bluetooth_connected

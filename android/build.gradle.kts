@@ -1,9 +1,6 @@
 allprojects {
     repositories {
 
-        google()
-       mavenCentral()
-
         maven {
             setUrl("https://maven.pkg.github.com/ShimmerEngineering/Shimmer-Java-Android-API")
             credentials {

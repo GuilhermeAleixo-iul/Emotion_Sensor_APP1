@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
 <<<<<<< HEAD
+<<<<<<< HEAD
   <component name="AndroidLayouts">
     <shared>
       <config />
@@ -8,10 +9,13 @@
   </component>
 =======
 >>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
+=======
+>>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
 <<<<<<< HEAD
     <list default="true" id="d7fe9cdb-103b-487e-831d-e5e897d7a257" name="Changes" comment="">
       <change afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
@@ -23,6 +27,8 @@
       <change beforePath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/android/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/android/build.gradle.kts" afterDir="false" />
 =======
+=======
+>>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
     <list default="true" id="62f68851-a9f0-4bca-abc6-a41c8918c666" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_SDK.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_SDK.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
@@ -30,6 +36,9 @@
       <change beforePath="$PROJECT_DIR$/android/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/.idea/gradle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/android/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/android/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/build.gradle.kts" afterDir="false" />
+<<<<<<< HEAD
+>>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
+=======
 >>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
       <change beforePath="$PROJECT_DIR$/android/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/android/gradle.properties" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.iml" beforeDir="false" afterPath="$PROJECT_DIR$/app.iml" afterDir="false" />
@@ -56,11 +65,14 @@
     </leaf>
   </component>
 <<<<<<< HEAD
+<<<<<<< HEAD
   <component name="ProjectColorInfo"><![CDATA[{
   "associatedIndex": 8
 }]]></component>
   <component name="ProjectId" id="2yufAKw4Y7dZtsJmN1Gnz04VsUJ" />
 =======
+=======
+>>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -80,6 +92,9 @@
   "associatedIndex": 2
 }]]></component>
   <component name="ProjectId" id="2yghHu77GPWNiyruKHRmHOdhn7e" />
+<<<<<<< HEAD
+>>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
+=======
 >>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1" />
@@ -91,7 +106,10 @@
   </component>
   <component name="ProjectViewState">
 <<<<<<< HEAD
+<<<<<<< HEAD
     <option name="hideEmptyMiddlePackages" value="true" />
+=======
+>>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
 =======
 >>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
     <option name="showLibraryContents" value="true" />
@@ -102,6 +120,10 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    "RunOnceActivity.git.unshallow": "true",
+>>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
 =======
     "RunOnceActivity.git.unshallow": "true",
 >>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
@@ -110,9 +132,15 @@
     "cidr.known.project.marker": "true",
     "dart.analysis.tool.window.visible": "false",
 <<<<<<< HEAD
+<<<<<<< HEAD
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/14906/Desktop/Dissertacao/Emotion_Sensor_APP",
     "settings.editor.selected.configurable": "preferences.customizations",
+=======
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/robert/Documents/Freelance/Emotion_Sensor_APP",
+>>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
 =======
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
@@ -125,17 +153,23 @@
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
 <<<<<<< HEAD
+<<<<<<< HEAD
       <changelist id="d7fe9cdb-103b-487e-831d-e5e897d7a257" name="Changes" comment="" />
       <created>1750689234768</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750689234768</updated>
 =======
+=======
+>>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
       <changelist id="62f68851-a9f0-4bca-abc6-a41c8918c666" name="Changes" comment="" />
       <created>1750262041127</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750262041127</updated>
+<<<<<<< HEAD
+>>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
+=======
 >>>>>>> 9c33197b1ca138edc01cca0fb63a1af7f15fb4cf
     </task>
     <servers />
