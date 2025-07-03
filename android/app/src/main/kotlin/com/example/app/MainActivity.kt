@@ -96,7 +96,7 @@ class MainActivity : FlutterActivity() {
         spinner!!.adapter = dataAdapter */
 
     }
-    fun checkPermission(){
+    private fun checkPermission(){
         var permissionGranted = true
         var permissionCheck = 0
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { //asking permition for Bluetooth device
@@ -352,13 +352,15 @@ class MainActivity : FlutterActivity() {
      * @param resultCode
      * @param data
      */
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        if (requestCode == 2) {
-            if (resultCode == RESULT_OK) {
-                //Get the Bluetooth mac address of the selected device:
-                val macAdd = data.getStringExtra(ShimmerBluetoothDialog.EXTRA_DEVICE_ADDRESS)
-                //shimmer = Shimmer(mHandler, this@MainActivity)
-                shimmer!!.connect(macAdd, "default") //Connect to the selected device
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        data?.let { intentData ->
+            if (requestCode == 2) {
+                if (resultCode == RESULT_OK) {
+                    //Get the Bluetooth mac address of the selected device:
+                    val macAdd = intentData.getStringExtra(ShimmerBluetoothDialog.EXTRA_DEVICE_ADDRESS)
+                    //shimmer = Shimmer(mHandler, this@MainActivity)
+                    shimmer!!.connect(macAdd, "default") //Connect to the selected device
+                }
             }
         }
         super.onActivityResult(requestCode, resultCode, data)

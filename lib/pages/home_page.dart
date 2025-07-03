@@ -47,10 +47,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    listenConectionStatus();
+    listenConnectionStatus();
   }
 
-  void listenConectionStatus() {
+  void listenConnectionStatus() {
     event_channel.receiveBroadcastStream().listen((event) {
       if (event is Map) {
         final data = Map<String, dynamic>.from(event);
@@ -59,14 +59,15 @@ class _HomePageState extends State<HomePage> {
             connectionState = data['State'] ?? 'Unknown';
           });
         } else if (data['type'] == 'sensorData') {
-          final sensorData = SensorData(
-            timeStamp: data['timeStamp'] as double?,
-            accelX: data['accel'] as double?,
-            grs: data['gsrConductance'] as double?,
-            ppg: data['ppgHeartRate'] as double?,
-            emg: data['emgMuscleActivity'] as double?,
-          );
-          if (sensorData.timeStamp! > previousTimeStamp + 200.0) {
+          final currentTimeStamp = data['timeStamp'] as double;
+          if (currentTimeStamp > previousTimeStamp + 200.0) {
+            final sensorData = SensorData(
+              timeStamp: data['timeStamp'] as double?,
+              accelX: data['accel'] as double?,
+              grs: data['gsrConductance'] as double?,
+              ppg: data['ppgHeartRate'] as double?,
+              emg: data['emgMuscleActivity'] as double?,
+            );
             setState(() {
               timeStamp = data['timeStamp'] as double;
             accelX = data['accel'] as double;
@@ -144,7 +145,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 30),
             Text(timeStamp.toString()),
             Text(accelX.toString()),
