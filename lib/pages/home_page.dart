@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:app/models/sensor_data.dart';
 import 'package:app/services/shimmer_service.dart';
 import 'package:app/widgets/sensor_data_linechart.dart';
@@ -18,7 +21,8 @@ class _HomePageState extends State<HomePage> {
   double accelX = 0.0;
   List<SensorData> _sensorDataList = []; // List to store sensor data
   double previousTimeStamp = 0.0;
-  int maxDataPoint = 30; // Maximum number of data points to display
+  int maxDataPoint = 100; // Maximum number of data points to display
+
 
   static const EventChannel event_channel = EventChannel(
     'com.example.emotion_sensor/shimmer/events',
@@ -44,6 +48,7 @@ class _HomePageState extends State<HomePage> {
     await _channel.invokeMethod('disconnect');
   }
 
+
   @override
   void initState() {
     super.initState();
@@ -60,7 +65,7 @@ class _HomePageState extends State<HomePage> {
           });
         } else if (data['type'] == 'sensorData') {
           final currentTimeStamp = data['timeStamp'] as double;
-          if (currentTimeStamp > previousTimeStamp + 200.0) {
+          if (currentTimeStamp > previousTimeStamp + 100.0) {
             final sensorData = SensorData(
               timeStamp: data['timeStamp'] as double?,
               accelX: data['accel'] as double?,
@@ -70,15 +75,14 @@ class _HomePageState extends State<HomePage> {
             );
             setState(() {
               timeStamp = data['timeStamp'] as double;
-            accelX = data['accel'] as double;
-             _sensorDataList.add(sensorData) ;
-             if(_sensorDataList.length > maxDataPoint){
-              _sensorDataList.removeAt(0);
-             }
+              accelX = data['accel'] as double;
+              _sensorDataList.add(sensorData);
+              if (_sensorDataList.length > maxDataPoint) {
+                _sensorDataList.removeAt(0);
+              }
             });
             previousTimeStamp = sensorData.timeStamp!;
           }
-          
         }
       }
     });
@@ -100,7 +104,12 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-           Expanded(child: SensorDataLinechart(sensorDataList: _sensorDataList)),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SensorDataLinechart(sensorDataList: _sensorDataList),
+              ),
+            ),
             Icon(
               _isConnected
                   ? Icons.bluetooth_connected
