@@ -1,10 +1,11 @@
+import "package:app/models/sensor_chart_data.dart";
 import "package:app/models/sensor_data.dart";
 import "package:fl_chart/fl_chart.dart";
 import "package:flutter/material.dart";
 
 class SensorDataLinechart extends StatelessWidget {
   const SensorDataLinechart({super.key, required this.sensorDataList});
-  final List<SensorData> sensorDataList;
+  final List<SensorChartData> sensorDataList;
 
   @override
   Widget build(BuildContext context) {
@@ -12,10 +13,8 @@ class SensorDataLinechart extends StatelessWidget {
         sensorDataList
             .where(
               (data) =>
-                  data.timeStamp != null &&
-                  data.accelX != null &&
-                  data.timeStamp!.isFinite &&
-                  data.accelX!.isFinite,
+                  data.timeStamp.isFinite &&
+                  data.data.isFinite,
             )
             .toList();
 
@@ -29,8 +28,8 @@ class SensorDataLinechart extends StatelessWidget {
       for(int i = 0; i < validData.length; i++) {
         final e = validData[i];
         final relativeTimeStamp =
-            (e.timeStamp! - oldestTimeStamp) / timeStampRage * 10.0;
-        spots.add(FlSpot(relativeTimeStamp, e.accelX!));
+            (e.timeStamp - oldestTimeStamp) / timeStampRage * 10.0;
+        spots.add(FlSpot(relativeTimeStamp, e.data));
       }
     }
 

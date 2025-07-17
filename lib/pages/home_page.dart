@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:app/models/sensor_data.dart';
+import 'package:app/pages/scan_page.dart';
 import 'package:app/services/shimmer_service.dart';
 import 'package:app/widgets/sensor_data_linechart.dart';
 import 'package:flutter/material.dart';
@@ -19,10 +20,11 @@ class _HomePageState extends State<HomePage> {
   String connectionState = "Disconnected";
   double timeStamp = 0.0;
   double accelX = 0.0;
-  List<SensorData> _sensorDataList = []; // List to store sensor data
+
+  /*List<SensorData> _sensorDataList = []; // List to store sensor data
   double previousTimeStamp = 0.0;
   int maxDataPoint = 100; // Maximum number of data points to display
-
+*/
 
   static const EventChannel event_channel = EventChannel(
     'com.example.emotion_sensor/shimmer/events',
@@ -64,7 +66,7 @@ class _HomePageState extends State<HomePage> {
             connectionState = data['State'] ?? 'Unknown';
           });
         } else if (data['type'] == 'sensorData') {
-          final currentTimeStamp = data['timeStamp'] as double;
+          /*final currentTimeStamp = data['timeStamp'] as double;
           if (currentTimeStamp > previousTimeStamp + 100.0) {
             final sensorData = SensorData(
               timeStamp: data['timeStamp'] as double?,
@@ -82,7 +84,7 @@ class _HomePageState extends State<HomePage> {
               }
             });
             previousTimeStamp = sensorData.timeStamp!;
-          }
+          }*/
         }
       }
     });
@@ -104,12 +106,12 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
+           /* Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: SensorDataLinechart(sensorDataList: _sensorDataList),
               ),
-            ),
+            ),*/
             Icon(
               _isConnected
                   ? Icons.bluetooth_connected
@@ -137,7 +139,26 @@ class _HomePageState extends State<HomePage> {
               child: Text(_isConnected ? "Disconnect" : "Connect to Sensor"),
             ),
             const SizedBox(height: 30),
-            Row(
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: (){
+                  _startStreaming();
+                  Navigator.push(context, MaterialPageRoute(builder: (Context){
+                    return ScanPage();
+                  }));
+                },
+                child: Text("SCAN", style: TextStyle(fontSize: 20, color: Colors.white),),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  
+                  
+                ),
+              ),
+            ),
+
+            /*Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
@@ -156,7 +177,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 30),
             Text(timeStamp.toString()),
-            Text(accelX.toString()),
+            Text(accelX.toString()),*/
           ],
         ),
       ),
