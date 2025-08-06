@@ -1,13 +1,18 @@
+import 'package:app/data/data_source/sensor_local_data_source.dart';
+import 'package:app/main.dart';
 import 'package:app/models/sensor_chart_data.dart';
 import 'package:app/models/sensor_data.dart';
+import 'package:app/widgets/charts/emg_chart.dart';
+import 'package:app/widgets/charts/grs_chart.dart';
+import 'package:app/widgets/charts/accel_chart.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
 
 import 'package:app/models/sensor_data.dart';
 import 'package:app/services/shimmer_service.dart';
-import 'package:app/widgets/sensor_data_linechart.dart';
 import 'package:flutter/services.dart';
+
 
 class ScanPage extends StatefulWidget {
   const ScanPage({super.key});
@@ -27,16 +32,20 @@ static const MethodChannel _channel = MethodChannel(
     'com.example.emotion_sensor/shimmer',
   );
 
+  StreamSubscription? _streamSubscription;
+  final dataSource = SensorLocalDataSource(isar: isar);
+
   @override
   void initState() {
     super.initState();
-    listenConnectionStatus();
+    listenSensorData();
   }
 
   @override
   void dispose() {
     super.dispose();
     _stopStreaming();
+    _streamSubscription?.cancel();
 
   }
 
@@ -46,8 +55,8 @@ static const MethodChannel _channel = MethodChannel(
   }
 
 
-  void listenConnectionStatus() {
-    event_channel.receiveBroadcastStream().listen((event) {
+  void listenSensorData() {
+     _streamSubscription = event_channel.receiveBroadcastStream().listen((event) {
       if (event is Map) {
         final data = Map<String, dynamic>.from(event);
         if (data['type'] == 'connectionData') {
@@ -85,42 +94,31 @@ static const MethodChannel _channel = MethodChannel(
       appBar: AppBar(title: Text('Scan Page', style: TextStyle(color: Colors.black12),)),
       body: Column(
         children: [
-          SensorDataLinechart(
-            sensorDataList:
-                _sensorDataList.map((e) {
-                  return SensorChartData(
-                    timeStamp: e.timeStamp ?? 0.0,
-                    data: e.accelX ?? 0.0,
-                    title: "Acell",
-                  );
-                }).toList(),
+          Expanded(
+            child: AccelerometerChart(
+              sensorDataList: _sensorDataList
+                  
+            ),
           ),
-          SensorDataLinechart(
-            sensorDataList:
-                _sensorDataList.map((e) {
-                  return SensorChartData(
-                    timeStamp: e.timeStamp ?? 0.0,
-                    data: e.ppg ?? 0.0,
-                    title: "PPG",
-                  );
-                }).toList(),
+          Expanded(
+            child: EmgChart(
+              sensorDataList: _sensorDataList
+                 
+            ),
           ),
-          SensorDataLinechart(
-            sensorDataList:
-                _sensorDataList.map((e) {
-                  return SensorChartData(
-                    timeStamp: e.timeStamp ?? 0.0,
-                    data: e.emg ?? 0.0,
-                    title: "EMG",
-                  );
-                }).toList(),
+          Expanded(
+            child: GrsChart(
+              sensorDataList: _sensorDataList
+                  
+            ),
           ),
 
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 _stopStreaming();
+                dataSource.saveScanSession(_sensorDataList);
               },
               child: Text(
                 "Stop Streaming",

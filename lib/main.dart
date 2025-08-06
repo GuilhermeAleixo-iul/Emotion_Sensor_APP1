@@ -1,7 +1,13 @@
+import 'package:app/data/database/isar_database.dart';
 import 'package:flutter/material.dart';
+import 'package:isar/isar.dart';
 import 'pages/home_page.dart'; // HomePage for Bluetooth connection
 
-void main() {
+late Isar isar; // Late for initialization
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  isar = await IsarDatabase.createIsarDatabase(); //it takes time to create the database, thats why we dont put before the class
   runApp(const MyApp());
 }
 

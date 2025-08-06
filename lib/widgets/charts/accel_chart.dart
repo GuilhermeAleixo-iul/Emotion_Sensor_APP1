@@ -1,11 +1,11 @@
-import "package:app/models/sensor_chart_data.dart";
 import "package:app/models/sensor_data.dart";
 import "package:fl_chart/fl_chart.dart";
 import "package:flutter/material.dart";
 
-class SensorDataLinechart extends StatelessWidget {
-  const SensorDataLinechart({super.key, required this.sensorDataList});
-  final List<SensorChartData> sensorDataList;
+class AccelerometerChart extends StatelessWidget {
+  const AccelerometerChart({super.key, required this.sensorDataList, this.windowSize = 10});
+  final List<SensorData> sensorDataList;
+  final double windowSize;
 
   @override
   Widget build(BuildContext context) {
@@ -13,23 +13,25 @@ class SensorDataLinechart extends StatelessWidget {
         sensorDataList
             .where(
               (data) =>
-                  data.timeStamp.isFinite &&
-                  data.data.isFinite,
+                  data.timeStamp != null &&
+                  data.accelX != null &&
+                  data.timeStamp!.isFinite &&
+                  data.accelX!.isFinite,
             )
             .toList();
 
     List<FlSpot> spots = [];
 
-    if(validData.isNotEmpty){
+    if (validData.isNotEmpty) {
       final latestTimeStamp = sensorDataList.last.timeStamp!;
       final oldestTimeStamp = sensorDataList.first.timeStamp!;
       final timeStampRage = latestTimeStamp - oldestTimeStamp;
 
-      for(int i = 0; i < validData.length; i++) {
+      for (int i = 0; i < validData.length; i++) {
         final e = validData[i];
         final relativeTimeStamp =
-            (e.timeStamp - oldestTimeStamp) / timeStampRage * 10.0;
-        spots.add(FlSpot(relativeTimeStamp, e.data));
+            (e.timeStamp! - oldestTimeStamp) / timeStampRage * windowSize;
+        spots.add(FlSpot(relativeTimeStamp, e.accelX!));
       }
     }
 
@@ -37,14 +39,20 @@ class SensorDataLinechart extends StatelessWidget {
       duration: Duration(microseconds: 100),
       LineChartData(
         minX: 0.0,
-        maxX: 10.0,
+        maxX: windowSize,
+        borderData: FlBorderData(show: false,
+        border: Border(
+          bottom: BorderSide(color: Colors.black, width: 1.0),
+          left: BorderSide(color: Colors.black, width: 1.0),
+        )
+        ),
         titlesData: FlTitlesData(
           topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              interval: 2,
+              interval: windowSize/2,
               getTitlesWidget: (value, meta) {
                 return Text(
                   '${value.toStringAsFixed(1)}s',
@@ -77,7 +85,7 @@ class SensorDataLinechart extends StatelessWidget {
             spots: spots,
             dotData: FlDotData(show: false),
             barWidth: 2,
-            color: Colors.blue
+            color: Colors.blue,
           ),
         ],
       ),
