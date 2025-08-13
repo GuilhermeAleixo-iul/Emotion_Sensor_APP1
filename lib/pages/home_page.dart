@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:app/models/sensor_chart_data.dart';
 import 'package:app/models/sensor_data.dart';
+import 'package:app/pages/scan_history_page.dart';
 import 'package:app/pages/scan_page.dart';
 import 'package:app/services/shimmer_service.dart';
 import 'package:app/widgets/charts/accel_chart.dart';
@@ -99,8 +100,12 @@ class _HomePageState extends State<HomePage> {
         title: const Text("Shimmer3 Connection"), // Screen title
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {}, // TODO: Add settings screen
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context){
+                        return ScanHistoryPage();
+                      }));
+            }, // TODO: Add settings screen
           ),
         ],
       ),

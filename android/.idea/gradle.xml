@@ -20,6 +20,8 @@
         <option name="gradleJvm" value="jbr-21" />
         <option name="modules">
           <set>
+            <option value="$USER_HOME$/AppData/Local/Pub/Cache/hosted/pub.dev/path_provider_android-2.2.17/android" />
+            <option value="$USER_HOME$/AppData/Local/Pub/Cache/hosted/pub.isar-community.dev/isar_flutter_libs-3.1.8/android" />
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/../../../flutter/flutter/packages/flutter_tools/gradle" />

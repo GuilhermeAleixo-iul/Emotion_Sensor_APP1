@@ -40,7 +40,7 @@ class SensorLocalDataSource {
   Future<List<ScanSession>> getScanSessions() async {
     try{
      final sessions = await isar.scanSessionCollections.where().findAll();
-
+      return sessions.map((e) => e.toModel()).toList();
     } catch(e){
       return [];
     }

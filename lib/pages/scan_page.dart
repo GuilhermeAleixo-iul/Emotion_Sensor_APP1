@@ -38,6 +38,11 @@ static const MethodChannel _channel = MethodChannel(
   @override
   void initState() {
     super.initState();
+    startListening();
+  }
+
+  void startListening() async{
+    await _startStreaming();
     listenSensorData();
   }
 
@@ -54,6 +59,9 @@ static const MethodChannel _channel = MethodChannel(
     await _channel.invokeMethod('stopStreaming');
   }
 
+ Future<void> _startStreaming() async {
+    await _channel.invokeMethod('startStreaming');
+  }
 
   void listenSensorData() {
      _streamSubscription = event_channel.receiveBroadcastStream().listen((event) {
@@ -77,9 +85,6 @@ static const MethodChannel _channel = MethodChannel(
               // timeStamp = data['timeStamp'] as double;
               // accelX = data['accel'] as double;
               _sensorDataList.add(sensorData);
-              if (_sensorDataList.length > maxDataPoint) {
-                _sensorDataList.removeAt(0);
-              }
             });
             previousTimeStamp = sensorData.timeStamp!;
           }
@@ -90,26 +95,31 @@ static const MethodChannel _channel = MethodChannel(
 
   @override
   Widget build(BuildContext context) {
+    double elapseTime = 10.0;
+    if(_sensorDataList.length >= 2) {
+      elapseTime = _sensorDataList.last.timeStamp! - _sensorDataList.first.timeStamp!;
+      elapseTime = elapseTime / 1000.0;
+    }
     return Scaffold(
       appBar: AppBar(title: Text('Scan Page', style: TextStyle(color: Colors.black12),)),
       body: Column(
         children: [
           Expanded(
             child: AccelerometerChart(
-              sensorDataList: _sensorDataList
-                  
+              sensorDataList: _sensorDataList,
+              windowSize: elapseTime,
             ),
           ),
           Expanded(
             child: EmgChart(
-              sensorDataList: _sensorDataList
-                 
+              sensorDataList: _sensorDataList,
+              windowSize: elapseTime,   
             ),
           ),
           Expanded(
             child: GrsChart(
-              sensorDataList: _sensorDataList
-                  
+              sensorDataList: _sensorDataList,
+              windowSize: elapseTime,    
             ),
           ),
 
