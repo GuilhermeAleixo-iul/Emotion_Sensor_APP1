@@ -1,49 +1,68 @@
-
 import 'package:app/data/collections/scan_session_collection.dart';
 import 'package:app/data/collections/sensor_data_collection.dart';
 import 'package:app/models/scan_session.dart';
 import 'package:app/models/sensor_data.dart';
+import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
 class SensorLocalDataSource {
-
   final Isar isar;
-  SensorLocalDataSource({
-    required this.isar,
-  });
+  SensorLocalDataSource({required this.isar});
 
   Future<bool> saveScanSession(List<SensorData> sensorDataList) async {
-    final scanSession = ScanSessionCollection(
-      
-    );
-    try{
+    final scanSession = ScanSessionCollection();
+    try {
       await isar.writeTxn(() async {
         final sessionId = await isar.scanSessionCollections.put(scanSession);
-        final sensorDataCollectionList = sensorDataList.map((element){
-          final collection = element.toCollection();
-          collection.scanSession.value = scanSession;
-          return collection;
-        }).toList();
-        
-        await isar.sensorDataCollections.putAll(sensorDataCollectionList);
-        for(final sensorData in sensorDataCollectionList){  //looping the list
+        final sensorDataCollectionList =
+            sensorDataList.map((element) {
+              final collection = element.toCollection();
+              collection.scanSession.value = scanSession;
+              return collection;
+            }).toList();
+
+        final ids = await isar.sensorDataCollections.putAll(
+          sensorDataCollectionList,
+        );
+        debugPrint('Saved Ids $ids');
+        for (final sensorData in sensorDataCollectionList) {
+          //looping the list
           await sensorData.scanSession.save();
         }
-
       });
       return true;
-    } catch(e) {
-        return false;
+    } catch (e) {
+      return false;
     }
   }
 
   Future<List<ScanSession>> getScanSessions() async {
-    try{
-     final sessions = await isar.scanSessionCollections.where().findAll();
+    try {
+      final sessions = await isar.scanSessionCollections.where().findAll();
+      debugPrint(' Source Sessions ${sessions}');
       return sessions.map((e) => e.toModel()).toList();
-    } catch(e){
+    } catch (e) {
       return [];
     }
   }
 
+  Future<bool> deleteScanSession(int id) async {
+    try {
+      await isar.writeTxn(() async {
+        final sensorData =
+            await isar.sensorDataCollections
+                .filter()
+                .scanSession((q) => q.idEqualTo(id))
+                .findAll();
+        final sensorDataIds = sensorData.map((element) => element.id).toList();
+        if (sensorDataIds.isNotEmpty) {
+          await isar.sensorDataCollections.deleteAll(sensorDataIds);
+        }
+        await isar.scanSessionCollections.delete(id);
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

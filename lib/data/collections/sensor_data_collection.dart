@@ -18,4 +18,8 @@ class SensorDataCollection {
   SensorData toModel(){
     return SensorData(timeStamp: timeStamp, accelX: accelX, grs: grs, ppg: ppg);
   }
+  @override
+  String toString() {
+    return 'timeStamp: $timeStamp, accelX $accelX, grs: $grs, ppg: $ppg';
+  }
   }

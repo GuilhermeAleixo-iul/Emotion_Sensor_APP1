@@ -15,6 +15,7 @@ class ScanSessionCollection {
   ScanSessionCollection();
   ScanSession toModel(){
     return ScanSession(
+      id: id,
       startTime: startTime, sensorDataList: sensorData.map((
         collection
       ){
@@ -22,5 +23,9 @@ class ScanSessionCollection {
       }).toList() 
     );
   } 
+  @override
+  String toString() {
+    return 'Sensor Data ${sensorData.toList()}';
+  }
 
 }

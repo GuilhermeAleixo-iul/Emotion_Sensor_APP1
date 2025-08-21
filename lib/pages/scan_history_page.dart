@@ -1,6 +1,7 @@
 import 'package:app/data/data_source/sensor_local_data_source.dart';
 import 'package:app/main.dart';
 import 'package:app/models/scan_session.dart';
+import 'package:app/pages/scan_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -23,7 +24,7 @@ class _MyWidgetState extends State<ScanHistoryPage> {
 
   void _loadScanSessions() async {
     final data = await dataSource.getScanSessions();
-    setState((){
+    setState(() {
       _scanSessions = data;
     });
   }
@@ -32,17 +33,40 @@ class _MyWidgetState extends State<ScanHistoryPage> {
   Widget build(BuildContext context) {
     final dataFormat = DateFormat('EEEE, MMMM d, yyyy – hh:mm a');
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Previous Scan'),
-      ),
+      appBar: AppBar(title: Text('Previous Scan')),
       body: ListView.builder(
+        padding: EdgeInsets.all(16),
         itemCount: _scanSessions.length,
         itemBuilder: (context, index) {
           final scanSession = _scanSessions[index];
-          return ListTile(
-            title: Text(dataFormat.format(
-              scanSession.startTime
-            )),
+          return Container(
+            margin: EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.black26,
+                width: 1
+              ),
+              borderRadius: BorderRadius.circular(12)
+
+            ),
+            child: ListTile(
+              trailing: IconButton(onPressed: () async {
+                await dataSource.deleteScanSession(scanSession.id);
+                _loadScanSessions();
+              }, icon: Icon(Icons.delete), color: Colors.red,),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return ScanDetailPage(scanSession: scanSession,);
+                    },
+                  ),
+                );
+              },
+              title: Text(dataFormat.format(scanSession.startTime)),
+              subtitle: Text(scanSession.sensorDataList.length.toString()),
+            ),
           );
         },
       ),
