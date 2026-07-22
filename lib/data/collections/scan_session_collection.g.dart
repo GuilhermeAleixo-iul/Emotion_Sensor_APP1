@@ -18,12 +18,14 @@ const ScanSessionCollectionSchema = CollectionSchema(
   name: r'ScanSessionCollection',
   id: -3778861466776021077,
   properties: {
+    r'emotion': PropertySchema(id: 0, name: r'emotion', type: IsarType.string),
     r'startTime': PropertySchema(
-      id: 0,
+      id: 1,
       name: r'startTime',
       type: IsarType.dateTime,
-    )
+    ),
   },
+
   estimateSize: _scanSessionCollectionEstimateSize,
   serialize: _scanSessionCollectionSerialize,
   deserialize: _scanSessionCollectionDeserialize,
@@ -36,13 +38,14 @@ const ScanSessionCollectionSchema = CollectionSchema(
       name: r'sensorData',
       target: r'SensorDataCollection',
       single: false,
-    )
+    ),
   },
   embeddedSchemas: {},
+
   getId: _scanSessionCollectionGetId,
   getLinks: _scanSessionCollectionGetLinks,
   attach: _scanSessionCollectionAttach,
-  version: '3.1.8',
+  version: '3.3.2',
 );
 
 int _scanSessionCollectionEstimateSize(
@@ -51,6 +54,7 @@ int _scanSessionCollectionEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.emotion.length * 3;
   return bytesCount;
 }
 
@@ -60,7 +64,8 @@ void _scanSessionCollectionSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.startTime);
+  writer.writeString(offsets[0], object.emotion);
+  writer.writeDateTime(offsets[1], object.startTime);
 }
 
 ScanSessionCollection _scanSessionCollectionDeserialize(
@@ -70,8 +75,9 @@ ScanSessionCollection _scanSessionCollectionDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = ScanSessionCollection();
+  object.emotion = reader.readString(offsets[0]);
   object.id = id;
-  object.startTime = reader.readDateTime(offsets[0]);
+  object.startTime = reader.readDateTime(offsets[1]);
   return object;
 }
 
@@ -83,6 +89,8 @@ P _scanSessionCollectionDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
+      return (reader.readString(offset)) as P;
+    case 1:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -94,41 +102,51 @@ Id _scanSessionCollectionGetId(ScanSessionCollection object) {
 }
 
 List<IsarLinkBase<dynamic>> _scanSessionCollectionGetLinks(
-    ScanSessionCollection object) {
+  ScanSessionCollection object,
+) {
   return [object.sensorData];
 }
 
 void _scanSessionCollectionAttach(
-    IsarCollection<dynamic> col, Id id, ScanSessionCollection object) {
+  IsarCollection<dynamic> col,
+  Id id,
+  ScanSessionCollection object,
+) {
   object.id = id;
   object.sensorData.attach(
-      col, col.isar.collection<SensorDataCollection>(), r'sensorData', id);
+    col,
+    col.isar.collection<SensorDataCollection>(),
+    r'sensorData',
+    id,
+  );
 }
 
 extension ScanSessionCollectionQueryWhereSort
     on QueryBuilder<ScanSessionCollection, ScanSessionCollection, QWhere> {
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterWhere>
-      anyId() {
+  anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension ScanSessionCollectionQueryWhere on QueryBuilder<ScanSessionCollection,
-    ScanSessionCollection, QWhereClause> {
+extension ScanSessionCollectionQueryWhere
+    on
+        QueryBuilder<
+          ScanSessionCollection,
+          ScanSessionCollection,
+          QWhereClause
+        > {
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterWhereClause>
-      idEqualTo(Id id) {
+  idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterWhereClause>
-      idNotEqualTo(Id id) {
+  idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -151,7 +169,7 @@ extension ScanSessionCollectionQueryWhere on QueryBuilder<ScanSessionCollection,
   }
 
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterWhereClause>
-      idGreaterThan(Id id, {bool include = false}) {
+  idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -160,7 +178,7 @@ extension ScanSessionCollectionQueryWhere on QueryBuilder<ScanSessionCollection,
   }
 
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterWhereClause>
-      idLessThan(Id id, {bool include = false}) {
+  idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -169,193 +187,443 @@ extension ScanSessionCollectionQueryWhere on QueryBuilder<ScanSessionCollection,
   }
 
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterWhereClause>
-      idBetween(
+  idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
 
-extension ScanSessionCollectionQueryFilter on QueryBuilder<
-    ScanSessionCollection, ScanSessionCollection, QFilterCondition> {
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> idEqualTo(Id value) {
+extension ScanSessionCollectionQueryFilter
+    on
+        QueryBuilder<
+          ScanSessionCollection,
+          ScanSessionCollection,
+          QFilterCondition
+        > {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  emotionEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'emotion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> idGreaterThan(
-    Id value, {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  emotionGreaterThan(
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'emotion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> idLessThan(
-    Id value, {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  emotionLessThan(
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'emotion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> idBetween(
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  emotionBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'emotion',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  emotionStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'emotion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  emotionEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'emotion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  emotionContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'emotion',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  emotionMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'emotion',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  emotionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'emotion', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  emotionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'emotion', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  idEqualTo(Id value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  idGreaterThan(Id value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  idLessThan(Id value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> startTimeEqualTo(DateTime value) {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  startTimeEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'startTime',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'startTime', value: value),
+      );
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> startTimeGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  startTimeGreaterThan(DateTime value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'startTime',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'startTime',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> startTimeLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  startTimeLessThan(DateTime value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'startTime',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'startTime',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> startTimeBetween(
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  startTimeBetween(
     DateTime lower,
     DateTime upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'startTime',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'startTime',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
 
-extension ScanSessionCollectionQueryObject on QueryBuilder<
-    ScanSessionCollection, ScanSessionCollection, QFilterCondition> {}
+extension ScanSessionCollectionQueryObject
+    on
+        QueryBuilder<
+          ScanSessionCollection,
+          ScanSessionCollection,
+          QFilterCondition
+        > {}
 
-extension ScanSessionCollectionQueryLinks on QueryBuilder<ScanSessionCollection,
-    ScanSessionCollection, QFilterCondition> {
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> sensorData(FilterQuery<SensorDataCollection> q) {
+extension ScanSessionCollectionQueryLinks
+    on
+        QueryBuilder<
+          ScanSessionCollection,
+          ScanSessionCollection,
+          QFilterCondition
+        > {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  sensorData(FilterQuery<SensorDataCollection> q) {
     return QueryBuilder.apply(this, (query) {
       return query.link(q, r'sensorData');
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> sensorDataLengthEqualTo(int length) {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  sensorDataLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'sensorData', length, true, length, true);
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> sensorDataIsEmpty() {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  sensorDataIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'sensorData', 0, true, 0, true);
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> sensorDataIsNotEmpty() {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  sensorDataIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'sensorData', 0, false, 999999, true);
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> sensorDataLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  sensorDataLengthLessThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'sensorData', 0, true, length, include);
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> sensorDataLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  sensorDataLengthGreaterThan(int length, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'sensorData', length, include, 999999, true);
     });
   }
 
-  QueryBuilder<ScanSessionCollection, ScanSessionCollection,
-      QAfterFilterCondition> sensorDataLengthBetween(
+  QueryBuilder<
+    ScanSessionCollection,
+    ScanSessionCollection,
+    QAfterFilterCondition
+  >
+  sensorDataLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -363,7 +631,12 @@ extension ScanSessionCollectionQueryLinks on QueryBuilder<ScanSessionCollection,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(
-          r'sensorData', lower, includeLower, upper, includeUpper);
+        r'sensorData',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 }
@@ -371,14 +644,28 @@ extension ScanSessionCollectionQueryLinks on QueryBuilder<ScanSessionCollection,
 extension ScanSessionCollectionQuerySortBy
     on QueryBuilder<ScanSessionCollection, ScanSessionCollection, QSortBy> {
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterSortBy>
-      sortByStartTime() {
+  sortByEmotion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emotion', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterSortBy>
+  sortByEmotionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emotion', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterSortBy>
+  sortByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.asc);
     });
   }
 
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterSortBy>
-      sortByStartTimeDesc() {
+  sortByStartTimeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.desc);
     });
@@ -388,28 +675,42 @@ extension ScanSessionCollectionQuerySortBy
 extension ScanSessionCollectionQuerySortThenBy
     on QueryBuilder<ScanSessionCollection, ScanSessionCollection, QSortThenBy> {
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterSortBy>
-      thenById() {
+  thenByEmotion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emotion', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterSortBy>
+  thenByEmotionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emotion', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterSortBy>
+  thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterSortBy>
-      thenByIdDesc() {
+  thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterSortBy>
-      thenByStartTime() {
+  thenByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.asc);
     });
   }
 
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QAfterSortBy>
-      thenByStartTimeDesc() {
+  thenByStartTimeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.desc);
     });
@@ -419,23 +720,42 @@ extension ScanSessionCollectionQuerySortThenBy
 extension ScanSessionCollectionQueryWhereDistinct
     on QueryBuilder<ScanSessionCollection, ScanSessionCollection, QDistinct> {
   QueryBuilder<ScanSessionCollection, ScanSessionCollection, QDistinct>
-      distinctByStartTime() {
+  distinctByEmotion({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'emotion', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ScanSessionCollection, ScanSessionCollection, QDistinct>
+  distinctByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'startTime');
     });
   }
 }
 
-extension ScanSessionCollectionQueryProperty on QueryBuilder<
-    ScanSessionCollection, ScanSessionCollection, QQueryProperty> {
+extension ScanSessionCollectionQueryProperty
+    on
+        QueryBuilder<
+          ScanSessionCollection,
+          ScanSessionCollection,
+          QQueryProperty
+        > {
   QueryBuilder<ScanSessionCollection, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });
   }
 
+  QueryBuilder<ScanSessionCollection, String, QQueryOperations>
+  emotionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'emotion');
+    });
+  }
+
   QueryBuilder<ScanSessionCollection, DateTime, QQueryOperations>
-      startTimeProperty() {
+  startTimeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'startTime');
     });

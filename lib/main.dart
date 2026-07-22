@@ -1,6 +1,6 @@
 import 'package:app/data/database/isar_database.dart';
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'pages/home_page.dart'; // HomePage for Bluetooth connection
 import 'package:camera/camera.dart';
 late List<CameraDescription> cameras;

@@ -18,27 +18,16 @@ const SensorDataCollectionSchema = CollectionSchema(
   name: r'SensorDataCollection',
   id: -8546089805957937055,
   properties: {
-    r'accelX': PropertySchema(
-      id: 0,
-      name: r'accelX',
-      type: IsarType.double,
-    ),
-    r'grs': PropertySchema(
-      id: 1,
-      name: r'grs',
-      type: IsarType.double,
-    ),
-    r'ppg': PropertySchema(
-      id: 2,
-      name: r'ppg',
-      type: IsarType.double,
-    ),
+    r'accelX': PropertySchema(id: 0, name: r'accelX', type: IsarType.double),
+    r'grs': PropertySchema(id: 1, name: r'grs', type: IsarType.double),
+    r'ppg': PropertySchema(id: 2, name: r'ppg', type: IsarType.double),
     r'timeStamp': PropertySchema(
       id: 3,
       name: r'timeStamp',
       type: IsarType.double,
-    )
+    ),
   },
+
   estimateSize: _sensorDataCollectionEstimateSize,
   serialize: _sensorDataCollectionSerialize,
   deserialize: _sensorDataCollectionDeserialize,
@@ -55,9 +44,9 @@ const SensorDataCollectionSchema = CollectionSchema(
           name: r'timeStamp',
           type: IndexType.value,
           caseSensitive: false,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {
     r'scanSession': LinkSchema(
@@ -65,13 +54,14 @@ const SensorDataCollectionSchema = CollectionSchema(
       name: r'scanSession',
       target: r'ScanSessionCollection',
       single: true,
-    )
+    ),
   },
   embeddedSchemas: {},
+
   getId: _sensorDataCollectionGetId,
   getLinks: _sensorDataCollectionGetLinks,
   attach: _sensorDataCollectionAttach,
-  version: '3.1.8',
+  version: '3.3.2',
 );
 
 int _sensorDataCollectionEstimateSize(
@@ -136,28 +126,36 @@ Id _sensorDataCollectionGetId(SensorDataCollection object) {
 }
 
 List<IsarLinkBase<dynamic>> _sensorDataCollectionGetLinks(
-    SensorDataCollection object) {
+  SensorDataCollection object,
+) {
   return [object.scanSession];
 }
 
 void _sensorDataCollectionAttach(
-    IsarCollection<dynamic> col, Id id, SensorDataCollection object) {
+  IsarCollection<dynamic> col,
+  Id id,
+  SensorDataCollection object,
+) {
   object.id = id;
   object.scanSession.attach(
-      col, col.isar.collection<ScanSessionCollection>(), r'scanSession', id);
+    col,
+    col.isar.collection<ScanSessionCollection>(),
+    r'scanSession',
+    id,
+  );
 }
 
 extension SensorDataCollectionQueryWhereSort
     on QueryBuilder<SensorDataCollection, SensorDataCollection, QWhere> {
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhere>
-      anyId() {
+  anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhere>
-      anyTimeStamp() {
+  anyTimeStamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'timeStamp'),
@@ -169,17 +167,14 @@ extension SensorDataCollectionQueryWhereSort
 extension SensorDataCollectionQueryWhere
     on QueryBuilder<SensorDataCollection, SensorDataCollection, QWhereClause> {
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      idEqualTo(Id id) {
+  idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      idNotEqualTo(Id id) {
+  idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -202,7 +197,7 @@ extension SensorDataCollectionQueryWhere
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      idGreaterThan(Id id, {bool include = false}) {
+  idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -211,7 +206,7 @@ extension SensorDataCollectionQueryWhere
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      idLessThan(Id id, {bool include = false}) {
+  idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -220,206 +215,251 @@ extension SensorDataCollectionQueryWhere
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      idBetween(
+  idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      timeStampIsNull() {
+  timeStampIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'timeStamp',
-        value: [null],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'timeStamp', value: [null]),
+      );
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      timeStampIsNotNull() {
+  timeStampIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'timeStamp',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'timeStamp',
+          lower: [null],
+          includeLower: false,
+          upper: [],
+        ),
+      );
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      timeStampEqualTo(double? timeStamp) {
+  timeStampEqualTo(double? timeStamp) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'timeStamp',
-        value: [timeStamp],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'timeStamp', value: [timeStamp]),
+      );
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      timeStampNotEqualTo(double? timeStamp) {
+  timeStampNotEqualTo(double? timeStamp) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'timeStamp',
-              lower: [],
-              upper: [timeStamp],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'timeStamp',
-              lower: [timeStamp],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'timeStamp',
+                lower: [],
+                upper: [timeStamp],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'timeStamp',
+                lower: [timeStamp],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'timeStamp',
-              lower: [timeStamp],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'timeStamp',
-              lower: [],
-              upper: [timeStamp],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'timeStamp',
+                lower: [timeStamp],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'timeStamp',
+                lower: [],
+                upper: [timeStamp],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      timeStampGreaterThan(
-    double? timeStamp, {
-    bool include = false,
-  }) {
+  timeStampGreaterThan(double? timeStamp, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'timeStamp',
-        lower: [timeStamp],
-        includeLower: include,
-        upper: [],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'timeStamp',
+          lower: [timeStamp],
+          includeLower: include,
+          upper: [],
+        ),
+      );
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      timeStampLessThan(
-    double? timeStamp, {
-    bool include = false,
-  }) {
+  timeStampLessThan(double? timeStamp, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'timeStamp',
-        lower: [],
-        upper: [timeStamp],
-        includeUpper: include,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'timeStamp',
+          lower: [],
+          upper: [timeStamp],
+          includeUpper: include,
+        ),
+      );
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterWhereClause>
-      timeStampBetween(
+  timeStampBetween(
     double? lowerTimeStamp,
     double? upperTimeStamp, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'timeStamp',
-        lower: [lowerTimeStamp],
-        includeLower: includeLower,
-        upper: [upperTimeStamp],
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'timeStamp',
+          lower: [lowerTimeStamp],
+          includeLower: includeLower,
+          upper: [upperTimeStamp],
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
 
-extension SensorDataCollectionQueryFilter on QueryBuilder<SensorDataCollection,
-    SensorDataCollection, QFilterCondition> {
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> accelXIsNull() {
+extension SensorDataCollectionQueryFilter
+    on
+        QueryBuilder<
+          SensorDataCollection,
+          SensorDataCollection,
+          QFilterCondition
+        > {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  accelXIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'accelX',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'accelX'),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> accelXIsNotNull() {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  accelXIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'accelX',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'accelX'),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> accelXEqualTo(
-    double? value, {
-    double epsilon = Query.epsilon,
-  }) {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  accelXEqualTo(double? value, {double epsilon = Query.epsilon}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'accelX',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'accelX',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> accelXGreaterThan(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  accelXGreaterThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'accelX',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'accelX',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> accelXLessThan(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  accelXLessThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'accelX',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'accelX',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> accelXBetween(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  accelXBetween(
     double? lower,
     double? upper, {
     bool includeLower = true,
@@ -427,83 +467,116 @@ extension SensorDataCollectionQueryFilter on QueryBuilder<SensorDataCollection,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'accelX',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'accelX',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> grsIsNull() {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  grsIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'grs',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'grs'),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> grsIsNotNull() {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  grsIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'grs',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'grs'),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> grsEqualTo(
-    double? value, {
-    double epsilon = Query.epsilon,
-  }) {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  grsEqualTo(double? value, {double epsilon = Query.epsilon}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'grs',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'grs',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> grsGreaterThan(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  grsGreaterThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'grs',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'grs',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> grsLessThan(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  grsLessThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'grs',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'grs',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> grsBetween(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  grsBetween(
     double? lower,
     double? upper, {
     bool includeLower = true,
@@ -511,139 +584,187 @@ extension SensorDataCollectionQueryFilter on QueryBuilder<SensorDataCollection,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'grs',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'grs',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> idEqualTo(Id value) {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  idGreaterThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  idLessThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> idBetween(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> ppgIsNull() {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  ppgIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'ppg',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'ppg'),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> ppgIsNotNull() {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  ppgIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'ppg',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'ppg'),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> ppgEqualTo(
-    double? value, {
-    double epsilon = Query.epsilon,
-  }) {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  ppgEqualTo(double? value, {double epsilon = Query.epsilon}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'ppg',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'ppg',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> ppgGreaterThan(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  ppgGreaterThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'ppg',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'ppg',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> ppgLessThan(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  ppgLessThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'ppg',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'ppg',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> ppgBetween(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  ppgBetween(
     double? lower,
     double? upper, {
     bool includeLower = true,
@@ -651,83 +772,116 @@ extension SensorDataCollectionQueryFilter on QueryBuilder<SensorDataCollection,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'ppg',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'ppg',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> timeStampIsNull() {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  timeStampIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'timeStamp',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'timeStamp'),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> timeStampIsNotNull() {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  timeStampIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'timeStamp',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'timeStamp'),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> timeStampEqualTo(
-    double? value, {
-    double epsilon = Query.epsilon,
-  }) {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  timeStampEqualTo(double? value, {double epsilon = Query.epsilon}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'timeStamp',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'timeStamp',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> timeStampGreaterThan(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  timeStampGreaterThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'timeStamp',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'timeStamp',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> timeStampLessThan(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  timeStampLessThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'timeStamp',
-        value: value,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'timeStamp',
+          value: value,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> timeStampBetween(
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  timeStampBetween(
     double? lower,
     double? upper, {
     bool includeLower = true,
@@ -735,32 +889,53 @@ extension SensorDataCollectionQueryFilter on QueryBuilder<SensorDataCollection,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'timeStamp',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        epsilon: epsilon,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'timeStamp',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+
+          epsilon: epsilon,
+        ),
+      );
     });
   }
 }
 
-extension SensorDataCollectionQueryObject on QueryBuilder<SensorDataCollection,
-    SensorDataCollection, QFilterCondition> {}
+extension SensorDataCollectionQueryObject
+    on
+        QueryBuilder<
+          SensorDataCollection,
+          SensorDataCollection,
+          QFilterCondition
+        > {}
 
-extension SensorDataCollectionQueryLinks on QueryBuilder<SensorDataCollection,
-    SensorDataCollection, QFilterCondition> {
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> scanSession(FilterQuery<ScanSessionCollection> q) {
+extension SensorDataCollectionQueryLinks
+    on
+        QueryBuilder<
+          SensorDataCollection,
+          SensorDataCollection,
+          QFilterCondition
+        > {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  scanSession(FilterQuery<ScanSessionCollection> q) {
     return QueryBuilder.apply(this, (query) {
       return query.link(q, r'scanSession');
     });
   }
 
-  QueryBuilder<SensorDataCollection, SensorDataCollection,
-      QAfterFilterCondition> scanSessionIsNull() {
+  QueryBuilder<
+    SensorDataCollection,
+    SensorDataCollection,
+    QAfterFilterCondition
+  >
+  scanSessionIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'scanSession', 0, true, 0, true);
     });
@@ -770,56 +945,56 @@ extension SensorDataCollectionQueryLinks on QueryBuilder<SensorDataCollection,
 extension SensorDataCollectionQuerySortBy
     on QueryBuilder<SensorDataCollection, SensorDataCollection, QSortBy> {
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      sortByAccelX() {
+  sortByAccelX() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'accelX', Sort.asc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      sortByAccelXDesc() {
+  sortByAccelXDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'accelX', Sort.desc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      sortByGrs() {
+  sortByGrs() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'grs', Sort.asc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      sortByGrsDesc() {
+  sortByGrsDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'grs', Sort.desc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      sortByPpg() {
+  sortByPpg() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ppg', Sort.asc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      sortByPpgDesc() {
+  sortByPpgDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ppg', Sort.desc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      sortByTimeStamp() {
+  sortByTimeStamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'timeStamp', Sort.asc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      sortByTimeStampDesc() {
+  sortByTimeStampDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'timeStamp', Sort.desc);
     });
@@ -829,70 +1004,70 @@ extension SensorDataCollectionQuerySortBy
 extension SensorDataCollectionQuerySortThenBy
     on QueryBuilder<SensorDataCollection, SensorDataCollection, QSortThenBy> {
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      thenByAccelX() {
+  thenByAccelX() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'accelX', Sort.asc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      thenByAccelXDesc() {
+  thenByAccelXDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'accelX', Sort.desc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      thenByGrs() {
+  thenByGrs() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'grs', Sort.asc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      thenByGrsDesc() {
+  thenByGrsDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'grs', Sort.desc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      thenById() {
+  thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      thenByIdDesc() {
+  thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      thenByPpg() {
+  thenByPpg() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ppg', Sort.asc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      thenByPpgDesc() {
+  thenByPpgDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'ppg', Sort.desc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      thenByTimeStamp() {
+  thenByTimeStamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'timeStamp', Sort.asc);
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QAfterSortBy>
-      thenByTimeStampDesc() {
+  thenByTimeStampDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'timeStamp', Sort.desc);
     });
@@ -902,36 +1077,41 @@ extension SensorDataCollectionQuerySortThenBy
 extension SensorDataCollectionQueryWhereDistinct
     on QueryBuilder<SensorDataCollection, SensorDataCollection, QDistinct> {
   QueryBuilder<SensorDataCollection, SensorDataCollection, QDistinct>
-      distinctByAccelX() {
+  distinctByAccelX() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'accelX');
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QDistinct>
-      distinctByGrs() {
+  distinctByGrs() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'grs');
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QDistinct>
-      distinctByPpg() {
+  distinctByPpg() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'ppg');
     });
   }
 
   QueryBuilder<SensorDataCollection, SensorDataCollection, QDistinct>
-      distinctByTimeStamp() {
+  distinctByTimeStamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'timeStamp');
     });
   }
 }
 
-extension SensorDataCollectionQueryProperty on QueryBuilder<
-    SensorDataCollection, SensorDataCollection, QQueryProperty> {
+extension SensorDataCollectionQueryProperty
+    on
+        QueryBuilder<
+          SensorDataCollection,
+          SensorDataCollection,
+          QQueryProperty
+        > {
   QueryBuilder<SensorDataCollection, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
@@ -939,7 +1119,7 @@ extension SensorDataCollectionQueryProperty on QueryBuilder<
   }
 
   QueryBuilder<SensorDataCollection, double?, QQueryOperations>
-      accelXProperty() {
+  accelXProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'accelX');
     });
@@ -958,7 +1138,7 @@ extension SensorDataCollectionQueryProperty on QueryBuilder<
   }
 
   QueryBuilder<SensorDataCollection, double?, QQueryOperations>
-      timeStampProperty() {
+  timeStampProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'timeStamp');
     });
