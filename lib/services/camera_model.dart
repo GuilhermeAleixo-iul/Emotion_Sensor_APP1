@@ -1,10 +1,10 @@
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:isar/isar.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
+
+import 'image_processor.dart';
 
 class CameraModel{
   late Interpreter _interpreter;
@@ -26,28 +26,20 @@ class CameraModel{
     }
   }
    void dispose(){
-    _interpreter.close();
+    //Guarded: _interpreter is `late`, so closing it after a failed loadModel()
+    //threw LateInitializationError on top of the original failure.
+    if(_isModelLoaded){
+      _interpreter.close();
+    }
    }
 
   Future<Map<String, double>> detectEmotion(img.Image image) async{
     if(!_isModelLoaded){
       throw Exception('Model is not loaded');
     } 
-    try{ 
-      img.Image resizedImage = img.copyResize(image, width: 224, height:224);
-
-      var input = Float32List(1*224*224*3);
-      int pixelIndex = 0;
-      for(int y=0; y < 224; y++){
-        for(int x=0; x < 224; x++){
-          final pixel = resizedImage.getPixel(x, y);
-          input[pixelIndex++] = pixel.r/255.0;
-          input[pixelIndex++] = pixel.g/255.0;
-          input[pixelIndex++] = pixel.b/255.0;
-
-        }
-      }
-      var inputData = input.reshape([1, 224, 224, 3]);
+    try{
+      final input = ImageProcessor.toModelInput(image, color: ColorMode.ferMatched);
+      final inputData = input.reshape([1, 224, 224, 3]);
       var output = List.filled(1*_labels.length, 0.0).reshape([1, _labels.length]);
       _interpreter.run(inputData, output);
       List<double> probabilitys = output[0].cast<double>();
