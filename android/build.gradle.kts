@@ -2,14 +2,14 @@ allprojects {
     repositories {
 
         maven {
-            setUrl("https://maven.pkg.github.com/ShimmerEngineering/Shimmer-Java-Android-API")
+            setUrl("https://maven.pkg.github.com/ShimmerResearch/Shimmer-Java-Android-API")
             credentials {
                 username = project.findProperty("gpr.usr") as? String ?: System.getenv("USERNAME")
                 password = project.findProperty("gpr.key") as? String ?: System.getenv("TOKEN")
             }
         }
         maven {
-            setUrl("https://maven.pkg.github.com/ShimmerEngineering/ShimmerAndroidAPI")
+            setUrl("https://maven.pkg.github.com/ShimmerResearch/ShimmerAndroidAPI")
             credentials {
                 username = project.findProperty("gpr.usr") as? String ?: System.getenv("USERNAME")
                 password = project.findProperty("gpr.key") as? String ?: System.getenv("TOKEN")
