@@ -13,7 +13,7 @@ class ScanHistoryPage extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<ScanHistoryPage> {
-  final dataSource = SensorLocalDataSource(isar: isar);
+  final dataSource = SensorLocalDataSource(db: database);
   List<ScanSession> _scanSessions = [];
 
   @override

@@ -36,16 +36,28 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  fl_chart: ^1.0.0
-  isar_community: ^3.3.0                    # was isar 3.1.8 @ pub.isar-community.dev
-  isar_community_flutter_libs: ^3.3.0
+  # Pinned exact (not ^): fl_chart 1.1.0+ call Matrix4.translateByDouble/
+  # scaleByDouble, which only exist in the vector_math bundled with Flutter
+  # 3.32+. The Windows machine is on 3.29.3. 1.0.0 works on both.
+  fl_chart: 1.0.0
+  # Drift (SQLite) replaces isar_community, which was an unmaintained native
+  # fork with a dead pub host and recurring core-version/stale-binary failures.
+  # Pinned exact and wired manually (not via drift_flutter, whose loose
+  # constraint pulls sqlite3_flutter_libs 0.6.0+eol -> Dart >=3.10). drift 2.31.0
+  # is the last release on sqlite3 ^2.6.0; 2.32+ moved to sqlite3 ^3.x which
+  # needs Dart 3.10. 2.31.0 + sqlite3_flutter_libs 0.5.42 work on Windows 3.7.2.
+  drift: 2.31.0
+  sqlite3_flutter_libs: 0.5.42
   path_provider: ^2.1.5
   intl: ^0.20.2
   tflite_flutter: ^0.11.0
   camera: ^0.11.2
   image: ^4.5.4
   get: ^4.7.2
-  google_mlkit_face_detection: ^0.14.0
+  # Pinned exact (not ^): 0.13.2+ require Dart >=3.8.0, but the Windows
+  # Flutter is 3.29.3 / Dart 3.7.2. 0.13.1 needs only >=2.16.0 and its API
+  # is identical to 0.14.0 for what this app uses.
+  google_mlkit_face_detection: 0.13.1
 
 dev_dependencies:
   flutter_test:
@@ -57,7 +69,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
-  isar_community_generator: ^3.3.0
+  drift_dev: 2.31.0                          # codegen; matches drift 2.31.0, supports Dart 3.7.2
   build_runner: ^2.4.9
 
 # For information on the generic Dart part of this file, see the

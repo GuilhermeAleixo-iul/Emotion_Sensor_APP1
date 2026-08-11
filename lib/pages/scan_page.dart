@@ -38,7 +38,7 @@ class _MyWidgetState extends State<ScanPage> {
   );
 
   StreamSubscription? _streamSubscription;
-  final dataSource = SensorLocalDataSource(isar: isar);
+  final dataSource = SensorLocalDataSource(db: database);
   final emotionInterpreter = EmotionInterpreter();
   double? sampleRate = null;
   String? _predictedEmotion = null;
@@ -84,7 +84,7 @@ class _MyWidgetState extends State<ScanPage> {
   String _getShimmerEmotion() {
     final features = FeatureExtractor.extractFeatures(
       _sensorDataList,
-      samplingRate: sampleRate!,
+      samplingRate: sampleRate ?? 128.0,
     );
     debugPrint('Exctracted features $features');
     final output = emotionInterpreter.predict(features.values.toList());
@@ -106,7 +106,8 @@ class _MyWidgetState extends State<ScanPage> {
             connectionState = data['State'] ?? 'Unknown';
           });*/
         } else if (data['type'] == 'sensorData') {
-          sampleRate = data['sampleRate'];
+          // Tolerate int or double (mock data often sends an int, or omits it).
+          sampleRate = (data['sampleRate'] as num?)?.toDouble();
           final currentTimeStamp = data['timeStamp'] as double;
           final sensorData = SensorData(
             timeStamp: data['timeStamp'] as double?,
@@ -164,6 +165,12 @@ class _MyWidgetState extends State<ScanPage> {
             child: ElevatedButton(
               onPressed: () async {
                 _stopStreaming();
+                // Guard: with no samples, feature extraction yields an empty
+                // vector and the interpreter would crash on it.
+                if (_sensorDataList.isEmpty) {
+                  _showSnackBar('No sensor data captured yet.');
+                  return;
+                }
                 final emotion = _getShimmerEmotion();
                 setState(() {
                   _predictedEmotion = emotion;

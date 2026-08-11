@@ -1,15 +1,16 @@
-import 'package:app/data/database/isar_database.dart';
+import 'package:app/data/database/app_database.dart';
 import 'package:flutter/material.dart';
-import 'package:isar_community/isar.dart';
 import 'pages/home_page.dart'; // HomePage for Bluetooth connection
 import 'package:camera/camera.dart';
 late List<CameraDescription> cameras;
-late Isar isar; // Late for initialization
+late AppDatabase database; // Drift database, shared app-wide
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   cameras = await availableCameras();
-  isar = await IsarDatabase.createIsarDatabase(); //it takes time to create the database, thats why we dont put before the class
+  // Drift opens lazily on first query, so this no longer blocks startup the
+  // way Isar.open did.
+  database = AppDatabase();
   runApp(const MyApp());
 }
 
