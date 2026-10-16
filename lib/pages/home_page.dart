@@ -1,14 +1,7 @@
-import 'dart:async';
-import 'dart:math';
-import 'package:app/models/sensor_chart_data.dart';
 import 'package:app/models/sensor_data.dart';
 import 'package:app/pages/camera_page.dart';
 import 'package:app/pages/scan_history_page.dart';
-import 'package:app/pages/scan_page.dart';
 import 'package:app/services/shimmer_service.dart';
-import 'package:app/widgets/charts/accel_chart.dart';
-import 'package:app/widgets/charts/emg_chart.dart';
-import 'package:app/widgets/charts/grs_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -19,38 +12,39 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool _isConnected = false; // Tracks Bluetooth connection status
   String connectionState = "Disconnected";
-  double timeStamp = 0.0;
-  double accelX = 0.0;
-  bool isScanPageVisible = false;
-  List<SensorData> _sensorDataList = []; // List to store sensor data
+  final List<SensorData> _sensorDataList = [];
   double previousTimeStamp = 0.0;
-  int maxDataPoint = 100; // Maximum number of data points to display
+  int maxDataPoint = 100;
 
   static const EventChannel event_channel = EventChannel(
     'com.example.emotion_sensor/shimmer/events',
   );
-
   static const MethodChannel _channel = MethodChannel(
     'com.example.emotion_sensor/shimmer',
   );
 
+  // Derived from the connection string the native side reports, replacing the
+  // old `_isConnected` flag that was never assigned (so the icon stayed grey).
+  bool get _connected {
+    final s = connectionState.toLowerCase();
+    if (s.contains('disconnect')) return false;
+    return s.contains('connect') || s.contains('stream');
+  }
+
+  /// Asks for Bluetooth permission if needed, then opens the device picker.
   Future<void> _connectToShimmer() async {
-    await ShimmerService.connect();
+    try {
+      await ShimmerService.connect();
+    } on PlatformException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Could not connect.')),
+      );
+    }
   }
-
-  Future<void> _startStreaming() async {
-    await _channel.invokeMethod('startStreaming');
-  }
-
-  Future<void> _stopStreaming() async {
-    await _channel.invokeMethod('stopStreaming');
-  }
-
-  Future<void> _disconnectShimmer() async {
-    await _channel.invokeMethod('disconnect');
-  }
+  Future<void> _disconnectShimmer() async =>
+      _channel.invokeMethod('disconnect');
 
   @override
   void initState() {
@@ -77,8 +71,6 @@ class _HomePageState extends State<HomePage> {
               emg: data['emgMuscleActivity'] as double?,
             );
             setState(() {
-              timeStamp = data['timeStamp'] as double;
-              accelX = data['accel'] as double;
               _sensorDataList.add(sensorData);
               if (_sensorDataList.length > maxDataPoint) {
                 _sensorDataList.removeAt(0);
@@ -93,179 +85,101 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final connected = _connected;
+    final statusColor = connected ? const Color(0xFF10B981) : scheme.outline;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Shimmer3 Connection"), // Screen title
+        title: const Text('Emotion Sensor'),
         actions: [
           IconButton(
+            tooltip: 'Scan history',
             icon: const Icon(Icons.history),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return ScanHistoryPage();
-                  },
-                ),
-              );
-            }, // TODO: Add settings screen
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ScanHistoryPage()),
+            ),
           ),
         ],
       ),
-      body: Center(
-        child: Stack(
-          children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                /* Expanded( 
-                  child: Padding( 
-                    padding: const EdgeInsets.all(16.0), 
-                    child: SensorDataLinechart(sensorDataList: _sensorDataList), 
-                  ), 
-                ),*/
-                Icon(
-                  _isConnected
-                      ? Icons.bluetooth_connected
-                      : Icons.bluetooth_disabled,
-                  size: 50,
-                  color: _isConnected ? Colors.green : Colors.grey,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const Spacer(),
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  connectionState,
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: _isConnected ? Colors.green : Colors.red,
-                  ),
-                ),
-                const SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (!_isConnected) {
-                      await _connectToShimmer(); // Conectar
-                    } else {
-                      await _disconnectShimmer(); // Desconectar
-                    }
-                  },
-                  child: Text(
-                    _isConnected ? "Disconnect" : "Connect to Sensor",
-                  ),
-                ),
-                const SizedBox(height: 30),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      //_startStreaming();
-                      /*setState(() { 
-                        isScanPageVisible = true; 
-                      });*/
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return CameraPage();
-                          },
-                        ),
-                      );
-                    },
-
-                    child: Text(
-                      "SCAN",
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: 20),
-                
-                
-                /*
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return CameraPage();
-                          },
-                        ),
-                      );
-                    },
-
-                    child: Text(
-                      "CAMERA DETECTOR",
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                    ),
-                  ),
-                ),
-*/
-
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                child: Column(
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        _startStreaming();
-                      },
-                      child: const Text('Start Streaming'),
+                    Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: statusColor.withValues(alpha: 0.14),
+                      ),
+                      child: Icon(
+                        connected
+                            ? Icons.bluetooth_connected
+                            : Icons.bluetooth_disabled,
+                        size: 46,
+                        color: statusColor,
+                      ),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        _stopStreaming();
-                      },
-                      child: const Text('Stop Streaming'),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Shimmer3 Sensor',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      connectionState,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: connected ? statusColor : scheme.onSurface,
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 30),
-                Text(timeStamp.toString()),
-                Text(accelX.toString()),
-              ],
-            ),
-            Visibility(
-              visible: isScanPageVisible,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: AccelerometerChart(sensorDataList: _sensorDataList),
-                  ),
-                  Expanded(child: EmgChart(sensorDataList: _sensorDataList)),
-                  Expanded(child: GrsChart(sensorDataList: _sensorDataList)),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _stopStreaming();
-                        setState(() {
-                          isScanPageVisible = false;
-                        });
-                      },
-                      child: Text(
-                        "Stop Streaming",
-                        style: TextStyle(fontSize: 20, color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                      ),
-                    ),
-                  ),
-                ],
               ),
-            ),
-          ],
+              const Spacer(),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  if (!connected) {
+                    await _connectToShimmer();
+                  } else {
+                    await _disconnectShimmer();
+                  }
+                },
+                icon: Icon(
+                    connected ? Icons.link_off : Icons.bluetooth_searching),
+                label: Text(connected ? 'Disconnect' : 'Connect to Sensor'),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CameraPage()),
+                ),
+                icon: const Icon(Icons.camera_alt_outlined),
+                label: const Text('Start Scan'),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );

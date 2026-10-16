@@ -1,4 +1,5 @@
 import 'package:app/data/database/app_database.dart';
+import 'package:app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'pages/home_page.dart'; // HomePage for Bluetooth connection
 import 'package:camera/camera.dart';
@@ -21,9 +22,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Emotion Sensor App', // App name (visible to users)
-      theme: ThemeData(
-        primarySwatch: Colors.blue, // Primary color
-      ),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.system, // follow the device's light/dark setting
       home: const HomePage(), // Main screen
       debugShowCheckedModeBanner: false, // Remove debug banner
     );

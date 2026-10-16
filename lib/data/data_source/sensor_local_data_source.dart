@@ -10,14 +10,20 @@ class SensorLocalDataSource {
 
   Future<bool> saveScanSession(
     List<SensorData> sensorDataList,
-    String emotion,
-  ) async {
+    String emotion, {
+    String? cameraEmotion,
+    String? gsrUnit,
+    String? ppgUnit,
+  }) async {
     try {
       await db.transaction(() async {
         final sessionId = await db.into(db.scanSessions).insert(
               ScanSessionsCompanion.insert(
                 startTime: DateTime.now(),
                 emotion: emotion,
+                cameraEmotion: Value(cameraEmotion),
+                gsrUnit: Value(gsrUnit),
+                ppgUnit: Value(ppgUnit),
               ),
             );
         // Batched insert: one statement for the whole session's samples.
@@ -57,6 +63,9 @@ class SensorLocalDataSource {
             id: s.id,
             startTime: s.startTime,
             emotion: s.emotion,
+            cameraEmotion: s.cameraEmotion,
+            gsrUnit: s.gsrUnit,
+            ppgUnit: s.ppgUnit,
             sensorDataList: readings
                 .map(
                   (r) => SensorData(

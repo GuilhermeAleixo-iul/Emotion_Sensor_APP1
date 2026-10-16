@@ -3,13 +3,17 @@ package com.example.app
 
 
 import android.Manifest
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import android.os.SystemClock
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
@@ -29,13 +33,20 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
 import java.io.IOException
 
 class MainActivity : FlutterActivity() {
     private var channel = "com.example.emotion_sensor/shimmer"
     private var eventChannel = "com.example.emotion_sensor/shimmer/events"
+    private val filesChannel = "com.example.emotion_sensor/files"
     private var eventSinkChannel: EventChannel.EventSink? = null
     var sampleRate: Double? = null
+
+    private var mockHandler: Handler? = null
+
+    /** The pending "connect" call while the permission prompt is showing. */
+    private var pendingConnectResult: MethodChannel.Result? = null
 
 
     var shimmer: Shimmer? = null //ver depois - sintaxe to initiate
@@ -45,15 +56,26 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channel).setMethodCallHandler { call, result ->
             when (call.method) {
                 "connect" -> {
-                    connectDevice()
-                    result.success(null)
+                    if (hasBluetoothPermissions()) {
+                        connectDevice()
+                        result.success(null)
+                    } else if (pendingConnectResult != null) {
+                        result.error("BUSY", "Already asking for Bluetooth permission.", null)
+                    } else {
+                        pendingConnectResult = result
+                        ActivityCompat.requestPermissions(
+                            this, bluetoothPermissions(), REQUEST_BLUETOOTH_PERMISSIONS
+                        )
+                    }
                 }
                 "startStreaming" -> {
                     startStreaming()
+                    //startMockStreaming()
                     result.success(null)
                 }
                 "stopStreaming" -> {
                     stopStreaming()
+                    //stopMockStreaming()
                     result.success(null)
                 }
                 "disconnect" -> {
@@ -62,6 +84,25 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
+        }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, filesChannel).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "saveToDownloads" -> {
+                    val fileName = call.argument<String>("fileName")!!
+                    val content = call.argument<String>("content")!!
+                    val mimeType = call.argument<String>("mimeType") ?: "text/csv"
+                    // Off the main thread: a long session is a few MB of CSV.
+                    Thread {
+                        try {
+                            val location = saveToDownloads(fileName, content, mimeType)
+                            runOnUiThread { result.success(location) }
+                        } catch (e: Exception) {
+                            runOnUiThread { result.error("SAVE_FAILED", e.message, null) }
+                        }
+                    }.start()
+                }
+                else -> result.notImplemented()
+            }
         }
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, eventChannel).setStreamHandler(
             object : EventChannel.StreamHandler{
@@ -81,7 +122,7 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) { //main function on Flutter - starting point when I open my app
         super.onCreate(savedInstanceState)
         //setContentView(R.layout.activity_main) - for UI
-       checkPermission()
+        // Bluetooth permissions are requested on "connect", when they're needed.
 
         shimmer = Shimmer(mHandler, this@MainActivity)
 
@@ -100,69 +141,99 @@ class MainActivity : FlutterActivity() {
         spinner!!.adapter = dataAdapter */
 
     }
-    private fun checkPermission(){
-        var permissionGranted = true
-        var permissionCheck = 0
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { //asking permition for Bluetooth device
-            permissionCheck =
-                ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
 
-            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-                permissionGranted = false
+    /**
+     * Writes [content] to Download/EmotionSensor/[fileName] and returns where it
+     * went. Android 10+ uses MediaStore, which needs no storage permission.
+     * Older versions fall back to the app's own Download folder
+     * (Android/data/<package>/files/Download), which also needs no permission.
+     */
+    private fun saveToDownloads(fileName: String, content: String, mimeType: String): String {
+        val folder = "EmotionSensor"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                put(MediaStore.Downloads.MIME_TYPE, mimeType)
+                put(MediaStore.Downloads.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/$folder")
+                put(MediaStore.Downloads.IS_PENDING, 1)
             }
-            permissionCheck =
-                ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN)
-            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-                permissionGranted = false
+            val resolver = contentResolver
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                ?: throw IOException("Could not create $fileName in Downloads")
+            try {
+                resolver.openOutputStream(uri)?.use { it.write(content.toByteArray()) }
+                    ?: throw IOException("Could not open $fileName for writing")
+                values.clear()
+                values.put(MediaStore.Downloads.IS_PENDING, 0)
+                resolver.update(uri, values, null, null)
+            } catch (e: Exception) {
+                resolver.delete(uri, null, null)
+                throw e
             }
-        } else {
-            permissionCheck = ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            )
-            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-                permissionGranted = false
-            }
+            // MediaStore renames on a clash ("name (1).csv"), so report the real name.
+            val savedName = resolver.query(uri, arrayOf(MediaStore.Downloads.DISPLAY_NAME), null, null, null)
+                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null } ?: fileName
+            return "${Environment.DIRECTORY_DOWNLOADS}/$folder/$savedName"
         }
-        permissionCheck =
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            permissionGranted = false
-        }
-        permissionCheck =
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            permissionGranted = false
-        }
-
-
-        if (!permissionGranted) {
-            // Should we show an explanation?
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(
-                        Manifest.permission.BLUETOOTH_CONNECT,
-                        Manifest.permission.BLUETOOTH_SCAN,
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ),
-                    110
-                )
-            } else {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    ),
-                    110
-                )
-            }
-        } else {
-        }
+        val dir = File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), folder)
+        dir.mkdirs()
+        val file = File(dir, fileName)
+        file.writeText(content)
+        return file.absolutePath
     }
+
+    fun startMockStreaming() {
+        mockHandler = Handler(Looper.getMainLooper())
+        val totalSamples = minOf(SampleData.sampleGsr.size, SampleData.samplePpg.size)
+        val startUptimeMs = SystemClock.uptimeMillis()
+        val startWallMs = System.currentTimeMillis().toDouble()
+        var sent = 0L
+
+        val runnable = object : Runnable {
+            override fun run() {
+                if (totalSamples > 0) {
+                    // Send every sample that is due by now, so playback keeps
+                    // real time. postDelayed() only guarantees a minimum delay;
+                    // one sample per tick fell behind 128 Hz and the recording
+                    // played (and the app counted seconds) too slowly.
+                    val due = (SystemClock.uptimeMillis() - startUptimeMs) * MOCK_RATE_HZ / 1000.0
+                    while (sent < due) {
+                        // Loop when reaching the end of the recording.
+                        val index = (sent % totalSamples).toInt()
+                        val mockData = mapOf(
+                            // Sample time rather than send time, so samples sent
+                            // in the same tick are still 1/128 s apart.
+                            "timeStamp" to startWallMs + sent * 1000.0 / MOCK_RATE_HZ,
+                            "type" to "sensorData",
+                            "sampleRate" to MOCK_RATE_HZ,
+                            // Use your CSV values
+                            "gsrConductance" to SampleData.sampleGsr[index],
+                            "ppgHeartRate" to SampleData.samplePpg[index],
+                            // The sample recording is calibrated Shimmer data.
+                            "gsrUnit" to Configuration.CHANNEL_UNITS.KOHMS,
+                            "ppgUnit" to Configuration.CHANNEL_UNITS.MILLIVOLTS,
+                            // Keep your other values randomized if needed
+                            "accel" to (Math.random() * 5),
+                            "emgMuscleActivity" to (Math.random() * 1000)
+                        )
+
+                        eventSinkChannel?.success(mockData)
+                        sent++
+                    }
+                }
+
+                mockHandler?.postDelayed(this, 8)
+            }
+        }
+        mockHandler?.post(runnable)
+    }
+
+
+    fun stopMockStreaming() {
+        mockHandler?.removeCallbacksAndMessages(null)
+        mockHandler = null
+    }
+
 /*
     override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
         if (spinner!!.isEnabled) {
@@ -179,6 +250,43 @@ class MainActivity : FlutterActivity() {
         // Another interface callback
     }
 */
+    /**
+     * What finding and connecting to the Shimmer needs. Android 12+ has
+     * dedicated Bluetooth permissions (the manifest marks the scan as never
+     * used for location). Older versions need location to discover devices.
+     */
+    private fun bluetoothPermissions(): Array<String> =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
+        } else {
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
+    private fun hasBluetoothPermissions(): Boolean = bluetoothPermissions().all {
+        ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != REQUEST_BLUETOOTH_PERMISSIONS) return
+        val result = pendingConnectResult ?: return
+        pendingConnectResult = null
+        if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+            connectDevice()
+            result.success(null)
+        } else {
+            // Also reached without a prompt when the user chose "Don't allow" before.
+            result.error(
+                "PERMISSION_DENIED",
+                "Bluetooth permission is needed to find the Shimmer. " +
+                    "You can allow it in Settings > Apps > app > Permissions.",
+                null
+            )
+        }
+    }
+
     private fun connectDevice() {
         val intent = Intent(
             applicationContext,
@@ -306,6 +414,9 @@ class MainActivity : FlutterActivity() {
                         "type" to "sensorData",
                         "gsrConductance" to gsrConductance,
                         "ppgHeartRate" to ppgHeartRate,
+                        // Units of the calibrated values, e.g. "kOhms" and "mV".
+                        "gsrUnit" to gsrformat.mUnits,
+                        "ppgUnit" to format?.mUnits,
                         "emgMuscleActivity" to emgActivity,
                         "sampleRate" to if(sampleRate == null) -1.0 else sampleRate
                     )
@@ -394,5 +505,8 @@ class MainActivity : FlutterActivity() {
 
     companion object {
         private const val LOG_TAG = "ShimmerBasicExample"
+        // SampleData was recorded by the Shimmer3 at 128 Hz.
+        private const val MOCK_RATE_HZ = 128.0
+        private const val REQUEST_BLUETOOTH_PERMISSIONS = 110
     }
 }

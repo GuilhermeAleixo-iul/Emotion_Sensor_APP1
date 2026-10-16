@@ -16,7 +16,9 @@ class CameraModel{
 
   Future<void> loadModel() async{
     try{
-      _interpreter = await Interpreter.fromAsset('assets/model_unquant.tflite');
+      // FER+ fine-tuned MobileNetV2, ~0.80 on the FER+ test set. Replaces the
+      // old Teachable Machine model_unquant.tflite.
+      _interpreter = await Interpreter.fromAsset('assets/emotion_face_model.tflite');
       final labelsData = await rootBundle.loadString('assets/labels.txt');
       _labels = labelsData.split('\n').where((label)=> label.isNotEmpty).toList(); //use a new line separated
       _isModelLoaded = true;
@@ -38,7 +40,10 @@ class CameraModel{
       throw Exception('Model is not loaded');
     } 
     try{
-      final input = ImageProcessor.toModelInput(image, color: ColorMode.ferMatched);
+      // grayscale, not ferMatched: this model trained on 112px FER+ sources,
+      // so the 48px squeeze ferMatched applied (to mimic the old Teachable
+      // Machine model) no longer matches the training distribution.
+      final input = ImageProcessor.toModelInput(image, color: ColorMode.grayscale);
       final inputData = input.reshape([1, 224, 224, 3]);
       var output = List.filled(1*_labels.length, 0.0).reshape([1, _labels.length]);
       _interpreter.run(inputData, output);

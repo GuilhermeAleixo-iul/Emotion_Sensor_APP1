@@ -2,6 +2,8 @@ import 'package:app/main.dart';
 import 'package:app/pages/scan_page.dart';
 import 'package:app/services/camera_model.dart';
 import 'package:app/services/image_processor.dart';
+import 'package:app/theme/emotion_visuals.dart';
+import 'package:app/widgets/emotion_bar_chart.dart';
 import 'package:app/widgets/face_box_painter.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -25,8 +27,15 @@ class _CameraPageState extends State<CameraPage> {
   final FaceDetector _faceDetector = FaceDetector(
     options: FaceDetectorOptions(performanceMode: FaceDetectorMode.fast),
   );
-  Map<String, double> _emotionResults = {};
-  String _predictedEmotion = "";
+  //The camera result is the average of every frame with a face since the page
+  //opened (or since Restart), not the last frame: single frames flicker with
+  //blinks, head turns and speech.
+  final Map<String, double> _probabilitySums = {};
+  int _framesAveraged = 0;
+  DateTime? _averageStartedAt;
+  DateTime? _lastAveragedAt;
+  //Off while the sensor scan is on top, so frames from then don't count.
+  bool _collecting = true;
   //Tracks whether the last processed frame actually contained a face.
   bool _faceFound = false;
   //Surfaced in the UI: a throw in the stream callback used to look identical
@@ -152,20 +161,26 @@ class _CameraPageState extends State<CameraPage> {
           if(crop == null) return;
 
           final results = await _cameraModel.detectEmotion(crop);
-          final emotion = _cameraModel.getPredictedEmotion(results);
           if(mounted){
             setState(() {
-              _emotionResults = results;
-              _predictedEmotion = emotion;
+              if(_collecting){
+                results.forEach((label, p){
+                  _probabilitySums[label] = (_probabilitySums[label] ?? 0) + p;
+                });
+                _framesAveraged++;
+                final now = DateTime.now();
+                _averageStartedAt ??= now;
+                _lastAveragedAt = now;
+              }
               _faceFound = true;
               _lastError = null;
               //Measured against `upright`, so the painter scales from its size.
               _faceBox = face.boundingBox;
-              _cropBox = ImageProcessor.cropRect(
-                face.boundingBox,
-                upright.width,
-                upright.height,
-              );
+              // _cropBox = ImageProcessor.cropRect(
+              //   face.boundingBox,
+              //   upright.width,
+              //   upright.height,
+              // );
               _analysisSize =
                   Size(upright.width.toDouble(), upright.height.toDouble());
             });
@@ -185,6 +200,44 @@ class _CameraPageState extends State<CameraPage> {
   }
 
 
+  Map<String, double> get _averageScores => {
+        for (final e in _probabilitySums.entries) e.key: e.value / _framesAveraged,
+      };
+
+  /// The emotion with the highest average probability; empty before any face.
+  String get _averageEmotion => _framesAveraged == 0
+      ? ''
+      : _cameraModel.getPredictedEmotion(_averageScores);
+
+  double get _averagedSeconds =>
+      _averageStartedAt == null || _lastAveragedAt == null
+          ? 0
+          : _lastAveragedAt!.difference(_averageStartedAt!).inMilliseconds / 1000;
+
+  void _restartAverage() {
+    setState(() {
+      _probabilitySums.clear();
+      _framesAveraged = 0;
+      _averageStartedAt = null;
+      _lastAveragedAt = null;
+    });
+  }
+
+  Future<void> _proceedToSensorScan() async {
+    final emotion = _averageEmotion;
+    setState(() => _collecting = false);
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ScanPage(cameraEmotion: emotion.isEmpty ? null : emotion),
+      ),
+    );
+    // Back from the sensor scan: a new attempt starts a new average.
+    if (!mounted) return;
+    _restartAverage();
+    setState(() => _collecting = true);
+  }
+
  void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -198,123 +251,157 @@ class _CameraPageState extends State<CameraPage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Camera Scanner'),
-      ),
+      appBar: AppBar(title: const Text('Facial Scan')),
       body: Column(
         children: [
-          SizedBox(
-            height: height * 0.5,
-            width: double.infinity,
-            child: _isCameraInialize
-                ? CameraPreview(
-                    _cameraController!,
-                    child: (_faceBox != null && !_analysisSize.isEmpty)
-                        ? CustomPaint(
-                            painter: FaceBoxPainter(
-                              faceBox: _faceBox!,
-                              cropBox: _cropBox,
-                              imageSize: _analysisSize,
-                            ),
-                          )
-                        : null,
-                  )
-                : Center(child: CircularProgressIndicator(),),
-          ),
-          //Shows the actual exception
-          if(_lastError != null)
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.red
-              ),
-              child: Text(
-                'DETECTION ERROR: $_lastError',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold
-                ),
-              ),
-            )
-          //New state: say so when no face is in frame instead of leaving the
-          //last prediction on screen as though it were current.
-          else if(!_faceFound)
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey
-              ),
-              child: Text(
-                "NO FACE DETECTED",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold
-                ),
-              ),
-            )
-          else if(_predictedEmotion.isNotEmpty)
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.green
-              ),
-              child: Text(
-                _predictedEmotion.toUpperCase(),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold
-                ),
-              ),
-            ),
-          //Gated on _faceFound so stale scores are not shown under the banner.
-          if(_faceFound && _emotionResults.isNotEmpty)
-            Expanded(child: ListView.builder(
-            itemCount: _emotionResults.length,
-            itemBuilder:(context, index) {
-              final emotion = _emotionResults.keys.elementAt(index);
-              final confident = _emotionResults[emotion];
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, //criar espaço
-                children: [
-                  Text(
-                    emotion
-                  ),
-                  Text(
-                    //These are softmax probabilities in 0..1, so 0.25 was
-                    //rendering as "0.3%" when it meant 25%.
-                    '${((confident ?? 0) * 100).toStringAsFixed(1)}%'
-                  )
-                ],
-              );
-            },
-            ),
-            ),
-          SizedBox(height: 10),
-
-           SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      //_startStreaming();
-                      /*setState(() { 
-                        isScanPageVisible = true; 
-                      });*/
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return ScanPage(cameraEmotion: _predictedEmotion.isEmpty? null: _predictedEmotion);
-                          },
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: SizedBox(
+              height: height * 0.45,
+              width: double.infinity,
+              // The preview takes the full width at its own aspect ratio
+              // (height unbounded, so it isn't stretched); whatever is taller
+              // than the box is cropped evenly top and bottom. The face box
+              // overlay is laid out with the preview, so it stays aligned.
+              child: _isCameraInialize
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: OverflowBox(
+                        minHeight: 0,
+                        maxHeight: double.infinity,
+                        child: CameraPreview(
+                          _cameraController!,
+                          child: (_faceBox != null && !_analysisSize.isEmpty)
+                              ? CustomPaint(
+                                  painter: FaceBoxPainter(
+                                    faceBox: _faceBox!,
+                                    cropBox: _cropBox,
+                                    imageSize: _analysisSize,
+                                  ),
+                                )
+                              : null,
                         ),
-                      );
-                    },
-
-                    child: Text(
-                      "Proceed so Shimmer Sensor Scan",
-                      style: TextStyle(fontSize: 20, color: Colors.white),
+                      ),
+                    )
+                  : DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Center(child: CircularProgressIndicator()),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+            ),
+          ),
+          // Status banner: error takes priority, then no-face, then the
+          // detected emotion.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: _CameraStatusBanner(
+              error: _lastError,
+              faceFound: _faceFound,
+              emotion: _averageEmotion,
+            ),
+          ),
+          if (_framesAveraged > 0) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Average of $_framesAveraged frames over '
+                      '${_averagedSeconds.toStringAsFixed(0)} s',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                     ),
                   ),
-                ),
+                  TextButton.icon(
+                    onPressed: _restartAverage,
+                    icon: const Icon(Icons.restart_alt, size: 18),
+                    label: const Text('Restart'),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: EmotionBarChart(scores: _averageScores),
+              ),
+            ),
+          ] else
+            const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: FilledButton.icon(
+              onPressed: _proceedToSensorScan,
+              icon: const Icon(Icons.sensors),
+              label: const Text('Proceed to Sensor Scan'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CameraStatusBanner extends StatelessWidget {
+  const _CameraStatusBanner({
+    required this.error,
+    required this.faceFound,
+    required this.emotion,
+  });
+
+  final String? error;
+  final bool faceFound;
+  final String emotion;
+
+  @override
+  Widget build(BuildContext context) {
+    late final IconData icon;
+    late final Color color;
+    late final String text;
+
+    if (error != null) {
+      icon = Icons.error_outline;
+      color = const Color(0xFFEF4444);
+      text = 'Detection error';
+    } else if (!faceFound) {
+      icon = Icons.face_retouching_off;
+      color = const Color(0xFF94A3B8);
+      text = 'No face detected';
+    } else if (emotion.isNotEmpty) {
+      final v = emotionVisual(emotion);
+      icon = v.icon;
+      color = v.color;
+      text = v.label;
+    } else {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(width: 10),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+            ),
+          ),
         ],
       ),
     );

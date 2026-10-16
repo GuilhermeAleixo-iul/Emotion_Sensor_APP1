@@ -1,0 +1,196 @@
+{
+  "model": "No-baseline arousal, CUADS consensus labels, logistic regression (physio_algorithm/train_consensus_arousal.py)",
+  "created": "2026-10-13",
+  "predicts": "P(the scan looks like a response to a stimulus people generally rate as arousing)",
+  "features": [
+    "scr_rate",
+    "rel_scr_amp",
+    "scr_max_rel",
+    "scl_slope_rel",
+    "eda_cv",
+    "hr_slope",
+    "hr_cv",
+    "rmssd_rel",
+    "pnn50",
+    "ppg_amp_cv",
+    "ppg_amp_slope_rel",
+    "hr"
+  ],
+  "feature_definitions": {
+    "scr_rate": "SCRs per minute (PhysioAlgorithm: rises >= 0.03 uS after a 1 Hz low-pass, 8 Hz)",
+    "rel_scr_amp": "summed SCR rise per minute / median SCL",
+    "scr_max_rel": "largest SCR rise / median SCL (0 if none)",
+    "scl_slope_rel": "least-squares slope of ln(SCL) over the scan, per minute",
+    "eda_cv": "sd of SCL after removing its straight-line trend / median SCL",
+    "hr_slope": "least-squares slope of instantaneous HR (clean beats) over time, bpm per minute",
+    "hr_cv": "sd / mean of instantaneous HR over clean beats",
+    "rmssd_rel": "RMSSD of consecutive clean IBIs / mean clean IBI",
+    "pnn50": "share of consecutive clean IBI differences above 50 ms",
+    "ppg_amp_cv": "sd / mean of beat amplitude (band-passed PPG peak minus the minimum since the previous peak)",
+    "ppg_amp_slope_rel": "least-squares slope of beat amplitude per minute / mean beat amplitude",
+    "hr": "mean HR over clean beats (bpm)"
+  },
+  "feature_reference": "physio_algorithm/physio_scan.py (same filters/detectors as PhysioAlgorithm / physio.py)",
+  "feature_scaler": {
+    "mean": [
+      5.023342000566557,
+      0.29102798274147257,
+      0.10923016939954602,
+      -0.03296364175142612,
+      0.03227075269821544,
+      -1.3496302327747896,
+      0.07826509812026212,
+      0.07192683825128197,
+      0.29321073398777314,
+      0.386063968383948,
+      -0.052908318184713185,
+      77.39722253090198
+    ],
+    "scale": [
+      4.546301906625314,
+      0.3736213497759807,
+      0.137233143433358,
+      0.18143928853267516,
+      0.032481645248316905,
+      7.732381051017552,
+      0.03241197105251172,
+      0.040586762430680566,
+      0.2066311016315943,
+      0.3451279155654003,
+      0.4084680733765418,
+      13.592763379935977
+    ]
+  },
+  "missing_feature": "use 0 after standardising (the CUADS average)",
+  "weights": [
+    0.06003344221013093,
+    -0.023132246703557697,
+    -0.30142122309213315,
+    0.2311722566040156,
+    0.19275741698512225,
+    -0.16015855338491095,
+    -0.40581185617250815,
+    0.4980401254700557,
+    -0.2920775851594091,
+    -0.11666590366375611,
+    0.06287007609747873,
+    -0.3362585479320749
+  ],
+  "intercept": 0.0020805023669810785,
+  "threshold": 0.5,
+  "strong_threshold": 0.65,
+  "emotion_mapping": "P > 0.65 Angry, P > 0.5 Happy, otherwise Relaxed",
+  "scan": {
+    "window_seconds": 60,
+    "hop_seconds": 30,
+    "settle_seconds": 20,
+    "min_seconds": 30,
+    "trained_at_hz": 128,
+    "gsr": "uS = 1000 / kOhm",
+    "rule": "skip up to settle_seconds at the start (the Shimmer start-up transient) while keeping at least min_seconds; cut the rest into 60 s windows (30 s hop) and average P; a remainder shorter than 60 s is scored as one window (less reliable). The app streams at 51.2 Hz: on CUADS that gives the same AUC (0.599-0.601 vs 0.606 at 128 Hz)."
+  },
+  "labels": {
+    "source": "CUADS clip consensus",
+    "clip_means": {
+      "video_107": 5.49,
+      "video_111": 6.582,
+      "video_138": 4.278,
+      "video_146": 4.64,
+      "video_30": 6.435,
+      "video_52": 4.516,
+      "video_53": 5.944,
+      "video_55": 6.102,
+      "video_58": 4.452,
+      "video_69": 5.412,
+      "video_73": 4.764,
+      "video_79": 4.659,
+      "video_80": 6.267,
+      "video_90": 5.54,
+      "video_cats_f": 5.838,
+      "video_dallas_f": 2.297,
+      "video_detroit_f": 3.194,
+      "video_earworm_f": 5.902,
+      "video_funny_f": 5.546,
+      "video_newyork_f": 2.485
+    },
+    "cut": 5.4509504608294925
+  },
+  "evaluation": {
+    "nested_cv_new_people": {
+      "auc": 0.606,
+      "auc_95ci": [
+        0.57,
+        0.65
+      ],
+      "balanced_accuracy": 0.578
+    },
+    "new_people_and_new_clips": {
+      "auc": [
+        0.577,
+        0.574,
+        0.564
+      ],
+      "balanced_accuracy": [
+        0.558,
+        0.565,
+        0.55
+      ]
+    },
+    "own_rating_labels_same_method": {
+      "auc": 0.518,
+      "auc_95ci": [
+        0.44,
+        0.59
+      ]
+    },
+    "case_same_method_own_labels": {
+      "auc": 0.714,
+      "auc_95ci": [
+        0.65,
+        0.78
+      ],
+      "note": "does not transfer to CUADS"
+    }
+  },
+  "training": {
+    "participants": [
+      "CUADS_002",
+      "CUADS_003",
+      "CUADS_004",
+      "CUADS_005",
+      "CUADS_008",
+      "CUADS_009",
+      "CUADS_010",
+      "CUADS_011",
+      "CUADS_012",
+      "CUADS_013",
+      "CUADS_014",
+      "CUADS_015",
+      "CUADS_016",
+      "CUADS_017",
+      "CUADS_018",
+      "CUADS_019",
+      "CUADS_020",
+      "CUADS_021",
+      "CUADS_022",
+      "CUADS_023",
+      "CUADS_024",
+      "CUADS_025",
+      "CUADS_026",
+      "CUADS_027",
+      "CUADS_028",
+      "CUADS_029",
+      "CUADS_030",
+      "CUADS_031",
+      "CUADS_035",
+      "CUADS_037",
+      "CUADS_039",
+      "CUADS_040",
+      "CUADS_041",
+      "CUADS_042",
+      "CUADS_043",
+      "CUADS_044"
+    ],
+    "scans": 806
+  }
+}

@@ -44,8 +44,48 @@ class $ScanSessionsTable extends ScanSessions
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _cameraEmotionMeta = const VerificationMeta(
+    'cameraEmotion',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, startTime, emotion];
+  late final GeneratedColumn<String> cameraEmotion = GeneratedColumn<String>(
+    'camera_emotion',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _gsrUnitMeta = const VerificationMeta(
+    'gsrUnit',
+  );
+  @override
+  late final GeneratedColumn<String> gsrUnit = GeneratedColumn<String>(
+    'gsr_unit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ppgUnitMeta = const VerificationMeta(
+    'ppgUnit',
+  );
+  @override
+  late final GeneratedColumn<String> ppgUnit = GeneratedColumn<String>(
+    'ppg_unit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    startTime,
+    emotion,
+    cameraEmotion,
+    gsrUnit,
+    ppgUnit,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -77,6 +117,27 @@ class $ScanSessionsTable extends ScanSessions
     } else if (isInserting) {
       context.missing(_emotionMeta);
     }
+    if (data.containsKey('camera_emotion')) {
+      context.handle(
+        _cameraEmotionMeta,
+        cameraEmotion.isAcceptableOrUnknown(
+          data['camera_emotion']!,
+          _cameraEmotionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('gsr_unit')) {
+      context.handle(
+        _gsrUnitMeta,
+        gsrUnit.isAcceptableOrUnknown(data['gsr_unit']!, _gsrUnitMeta),
+      );
+    }
+    if (data.containsKey('ppg_unit')) {
+      context.handle(
+        _ppgUnitMeta,
+        ppgUnit.isAcceptableOrUnknown(data['ppg_unit']!, _ppgUnitMeta),
+      );
+    }
     return context;
   }
 
@@ -101,6 +162,18 @@ class $ScanSessionsTable extends ScanSessions
             DriftSqlType.string,
             data['${effectivePrefix}emotion'],
           )!,
+      cameraEmotion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}camera_emotion'],
+      ),
+      gsrUnit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}gsr_unit'],
+      ),
+      ppgUnit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ppg_unit'],
+      ),
     );
   }
 
@@ -114,10 +187,16 @@ class ScanSessionRow extends DataClass implements Insertable<ScanSessionRow> {
   final int id;
   final DateTime startTime;
   final String emotion;
+  final String? cameraEmotion;
+  final String? gsrUnit;
+  final String? ppgUnit;
   const ScanSessionRow({
     required this.id,
     required this.startTime,
     required this.emotion,
+    this.cameraEmotion,
+    this.gsrUnit,
+    this.ppgUnit,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -125,6 +204,15 @@ class ScanSessionRow extends DataClass implements Insertable<ScanSessionRow> {
     map['id'] = Variable<int>(id);
     map['start_time'] = Variable<DateTime>(startTime);
     map['emotion'] = Variable<String>(emotion);
+    if (!nullToAbsent || cameraEmotion != null) {
+      map['camera_emotion'] = Variable<String>(cameraEmotion);
+    }
+    if (!nullToAbsent || gsrUnit != null) {
+      map['gsr_unit'] = Variable<String>(gsrUnit);
+    }
+    if (!nullToAbsent || ppgUnit != null) {
+      map['ppg_unit'] = Variable<String>(ppgUnit);
+    }
     return map;
   }
 
@@ -133,6 +221,18 @@ class ScanSessionRow extends DataClass implements Insertable<ScanSessionRow> {
       id: Value(id),
       startTime: Value(startTime),
       emotion: Value(emotion),
+      cameraEmotion:
+          cameraEmotion == null && nullToAbsent
+              ? const Value.absent()
+              : Value(cameraEmotion),
+      gsrUnit:
+          gsrUnit == null && nullToAbsent
+              ? const Value.absent()
+              : Value(gsrUnit),
+      ppgUnit:
+          ppgUnit == null && nullToAbsent
+              ? const Value.absent()
+              : Value(ppgUnit),
     );
   }
 
@@ -145,6 +245,9 @@ class ScanSessionRow extends DataClass implements Insertable<ScanSessionRow> {
       id: serializer.fromJson<int>(json['id']),
       startTime: serializer.fromJson<DateTime>(json['startTime']),
       emotion: serializer.fromJson<String>(json['emotion']),
+      cameraEmotion: serializer.fromJson<String?>(json['cameraEmotion']),
+      gsrUnit: serializer.fromJson<String?>(json['gsrUnit']),
+      ppgUnit: serializer.fromJson<String?>(json['ppgUnit']),
     );
   }
   @override
@@ -154,20 +257,39 @@ class ScanSessionRow extends DataClass implements Insertable<ScanSessionRow> {
       'id': serializer.toJson<int>(id),
       'startTime': serializer.toJson<DateTime>(startTime),
       'emotion': serializer.toJson<String>(emotion),
+      'cameraEmotion': serializer.toJson<String?>(cameraEmotion),
+      'gsrUnit': serializer.toJson<String?>(gsrUnit),
+      'ppgUnit': serializer.toJson<String?>(ppgUnit),
     };
   }
 
-  ScanSessionRow copyWith({int? id, DateTime? startTime, String? emotion}) =>
-      ScanSessionRow(
-        id: id ?? this.id,
-        startTime: startTime ?? this.startTime,
-        emotion: emotion ?? this.emotion,
-      );
+  ScanSessionRow copyWith({
+    int? id,
+    DateTime? startTime,
+    String? emotion,
+    Value<String?> cameraEmotion = const Value.absent(),
+    Value<String?> gsrUnit = const Value.absent(),
+    Value<String?> ppgUnit = const Value.absent(),
+  }) => ScanSessionRow(
+    id: id ?? this.id,
+    startTime: startTime ?? this.startTime,
+    emotion: emotion ?? this.emotion,
+    cameraEmotion:
+        cameraEmotion.present ? cameraEmotion.value : this.cameraEmotion,
+    gsrUnit: gsrUnit.present ? gsrUnit.value : this.gsrUnit,
+    ppgUnit: ppgUnit.present ? ppgUnit.value : this.ppgUnit,
+  );
   ScanSessionRow copyWithCompanion(ScanSessionsCompanion data) {
     return ScanSessionRow(
       id: data.id.present ? data.id.value : this.id,
       startTime: data.startTime.present ? data.startTime.value : this.startTime,
       emotion: data.emotion.present ? data.emotion.value : this.emotion,
+      cameraEmotion:
+          data.cameraEmotion.present
+              ? data.cameraEmotion.value
+              : this.cameraEmotion,
+      gsrUnit: data.gsrUnit.present ? data.gsrUnit.value : this.gsrUnit,
+      ppgUnit: data.ppgUnit.present ? data.ppgUnit.value : this.ppgUnit,
     );
   }
 
@@ -176,46 +298,68 @@ class ScanSessionRow extends DataClass implements Insertable<ScanSessionRow> {
     return (StringBuffer('ScanSessionRow(')
           ..write('id: $id, ')
           ..write('startTime: $startTime, ')
-          ..write('emotion: $emotion')
+          ..write('emotion: $emotion, ')
+          ..write('cameraEmotion: $cameraEmotion, ')
+          ..write('gsrUnit: $gsrUnit, ')
+          ..write('ppgUnit: $ppgUnit')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, startTime, emotion);
+  int get hashCode =>
+      Object.hash(id, startTime, emotion, cameraEmotion, gsrUnit, ppgUnit);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ScanSessionRow &&
           other.id == this.id &&
           other.startTime == this.startTime &&
-          other.emotion == this.emotion);
+          other.emotion == this.emotion &&
+          other.cameraEmotion == this.cameraEmotion &&
+          other.gsrUnit == this.gsrUnit &&
+          other.ppgUnit == this.ppgUnit);
 }
 
 class ScanSessionsCompanion extends UpdateCompanion<ScanSessionRow> {
   final Value<int> id;
   final Value<DateTime> startTime;
   final Value<String> emotion;
+  final Value<String?> cameraEmotion;
+  final Value<String?> gsrUnit;
+  final Value<String?> ppgUnit;
   const ScanSessionsCompanion({
     this.id = const Value.absent(),
     this.startTime = const Value.absent(),
     this.emotion = const Value.absent(),
+    this.cameraEmotion = const Value.absent(),
+    this.gsrUnit = const Value.absent(),
+    this.ppgUnit = const Value.absent(),
   });
   ScanSessionsCompanion.insert({
     this.id = const Value.absent(),
     required DateTime startTime,
     required String emotion,
+    this.cameraEmotion = const Value.absent(),
+    this.gsrUnit = const Value.absent(),
+    this.ppgUnit = const Value.absent(),
   }) : startTime = Value(startTime),
        emotion = Value(emotion);
   static Insertable<ScanSessionRow> custom({
     Expression<int>? id,
     Expression<DateTime>? startTime,
     Expression<String>? emotion,
+    Expression<String>? cameraEmotion,
+    Expression<String>? gsrUnit,
+    Expression<String>? ppgUnit,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (startTime != null) 'start_time': startTime,
       if (emotion != null) 'emotion': emotion,
+      if (cameraEmotion != null) 'camera_emotion': cameraEmotion,
+      if (gsrUnit != null) 'gsr_unit': gsrUnit,
+      if (ppgUnit != null) 'ppg_unit': ppgUnit,
     });
   }
 
@@ -223,11 +367,17 @@ class ScanSessionsCompanion extends UpdateCompanion<ScanSessionRow> {
     Value<int>? id,
     Value<DateTime>? startTime,
     Value<String>? emotion,
+    Value<String?>? cameraEmotion,
+    Value<String?>? gsrUnit,
+    Value<String?>? ppgUnit,
   }) {
     return ScanSessionsCompanion(
       id: id ?? this.id,
       startTime: startTime ?? this.startTime,
       emotion: emotion ?? this.emotion,
+      cameraEmotion: cameraEmotion ?? this.cameraEmotion,
+      gsrUnit: gsrUnit ?? this.gsrUnit,
+      ppgUnit: ppgUnit ?? this.ppgUnit,
     );
   }
 
@@ -243,6 +393,15 @@ class ScanSessionsCompanion extends UpdateCompanion<ScanSessionRow> {
     if (emotion.present) {
       map['emotion'] = Variable<String>(emotion.value);
     }
+    if (cameraEmotion.present) {
+      map['camera_emotion'] = Variable<String>(cameraEmotion.value);
+    }
+    if (gsrUnit.present) {
+      map['gsr_unit'] = Variable<String>(gsrUnit.value);
+    }
+    if (ppgUnit.present) {
+      map['ppg_unit'] = Variable<String>(ppgUnit.value);
+    }
     return map;
   }
 
@@ -251,7 +410,10 @@ class ScanSessionsCompanion extends UpdateCompanion<ScanSessionRow> {
     return (StringBuffer('ScanSessionsCompanion(')
           ..write('id: $id, ')
           ..write('startTime: $startTime, ')
-          ..write('emotion: $emotion')
+          ..write('emotion: $emotion, ')
+          ..write('cameraEmotion: $cameraEmotion, ')
+          ..write('gsrUnit: $gsrUnit, ')
+          ..write('ppgUnit: $ppgUnit')
           ..write(')'))
         .toString();
   }
@@ -731,12 +893,18 @@ typedef $$ScanSessionsTableCreateCompanionBuilder =
       Value<int> id,
       required DateTime startTime,
       required String emotion,
+      Value<String?> cameraEmotion,
+      Value<String?> gsrUnit,
+      Value<String?> ppgUnit,
     });
 typedef $$ScanSessionsTableUpdateCompanionBuilder =
     ScanSessionsCompanion Function({
       Value<int> id,
       Value<DateTime> startTime,
       Value<String> emotion,
+      Value<String?> cameraEmotion,
+      Value<String?> gsrUnit,
+      Value<String?> ppgUnit,
     });
 
 final class $$ScanSessionsTableReferences
@@ -789,6 +957,21 @@ class $$ScanSessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get cameraEmotion => $composableBuilder(
+    column: $table.cameraEmotion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get gsrUnit => $composableBuilder(
+    column: $table.gsrUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ppgUnit => $composableBuilder(
+    column: $table.ppgUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> sensorReadingsRefs(
     Expression<bool> Function($$SensorReadingsTableFilterComposer f) f,
   ) {
@@ -838,6 +1021,21 @@ class $$ScanSessionsTableOrderingComposer
     column: $table.emotion,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get cameraEmotion => $composableBuilder(
+    column: $table.cameraEmotion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get gsrUnit => $composableBuilder(
+    column: $table.gsrUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ppgUnit => $composableBuilder(
+    column: $table.ppgUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ScanSessionsTableAnnotationComposer
@@ -857,6 +1055,17 @@ class $$ScanSessionsTableAnnotationComposer
 
   GeneratedColumn<String> get emotion =>
       $composableBuilder(column: $table.emotion, builder: (column) => column);
+
+  GeneratedColumn<String> get cameraEmotion => $composableBuilder(
+    column: $table.cameraEmotion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get gsrUnit =>
+      $composableBuilder(column: $table.gsrUnit, builder: (column) => column);
+
+  GeneratedColumn<String> get ppgUnit =>
+      $composableBuilder(column: $table.ppgUnit, builder: (column) => column);
 
   Expression<T> sensorReadingsRefs<T extends Object>(
     Expression<T> Function($$SensorReadingsTableAnnotationComposer a) f,
@@ -916,20 +1125,32 @@ class $$ScanSessionsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<DateTime> startTime = const Value.absent(),
                 Value<String> emotion = const Value.absent(),
+                Value<String?> cameraEmotion = const Value.absent(),
+                Value<String?> gsrUnit = const Value.absent(),
+                Value<String?> ppgUnit = const Value.absent(),
               }) => ScanSessionsCompanion(
                 id: id,
                 startTime: startTime,
                 emotion: emotion,
+                cameraEmotion: cameraEmotion,
+                gsrUnit: gsrUnit,
+                ppgUnit: ppgUnit,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required DateTime startTime,
                 required String emotion,
+                Value<String?> cameraEmotion = const Value.absent(),
+                Value<String?> gsrUnit = const Value.absent(),
+                Value<String?> ppgUnit = const Value.absent(),
               }) => ScanSessionsCompanion.insert(
                 id: id,
                 startTime: startTime,
                 emotion: emotion,
+                cameraEmotion: cameraEmotion,
+                gsrUnit: gsrUnit,
+                ppgUnit: ppgUnit,
               ),
           withReferenceMapper:
               (p0) =>

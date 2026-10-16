@@ -1,61 +1,121 @@
-
+import 'package:app/theme/emotion_visuals.dart';
 import 'package:flutter/material.dart';
 
 class EmotionDialog extends StatelessWidget {
-  const EmotionDialog({super.key, required this.sensorEmotion, this.cameraEmotion, required this.onClosed});
+  const EmotionDialog({
+    super.key,
+    required this.sensorEmotion,
+    this.cameraEmotion,
+    required this.onClosed,
+  });
+
   final String sensorEmotion;
   final String? cameraEmotion;
-  final Function() onClosed;
+  final void Function() onClosed;
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final hasCamera = cameraEmotion != null && cameraEmotion!.trim().isNotEmpty;
+    final match = hasCamera &&
+        cameraEmotion!.trim().toLowerCase() ==
+            sensorEmotion.trim().toLowerCase();
+
     return Dialog(
-      backgroundColor: Colors.white,
-      child: Container(
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                cameraEmotion == null? 'Sensor Emotion was $sensorEmotion': displayEmotionText(cameraEmotion!, sensorEmotion),
-                style: TextStyle(color: Colors.black),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Scan Result',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: scheme.onSurface,
               ),
-
-              SizedBox(height: 20),
-
-              SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: onClosed,
-                    child: Text(
-                      "Close",
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                    ),
+            ),
+            const SizedBox(height: 20),
+            if (hasCamera) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _Source(label: 'Camera', emotion: cameraEmotion),
+                  _Source(label: 'Sensor', emotion: sensorEmotion),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: (match ? scheme.primary : scheme.tertiary)
+                      .withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  match
+                      ? 'Both agree on this emotion.'
+                      : 'The camera and sensor disagreed.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: match ? scheme.primary : scheme.tertiary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
+              ),
+            ] else ...[
+              _Source(label: 'Sensor', emotion: sensorEmotion),
             ],
-          ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: onClosed,
+              child: const Text('Close'),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
+class _Source extends StatelessWidget {
+  const _Source({required this.label, required this.emotion});
+  final String label;
+  final String? emotion;
 
-String displayEmotionText(String cameraEmotion, String sensorEmotion){
-  String output = '';
-  if(cameraEmotion == sensorEmotion){
-    output = 'The emotion detected by the camera and by the Shimmer Sensor was $cameraEmotion ';
-  }else {
-    output = 'The emotion detected by the camera was $cameraEmotion, but by the Shimmer Sensor was $sensorEmotion';
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final v = emotionVisual(emotion);
+    return Column(
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 10),
+        CircleAvatar(
+          radius: 30,
+          backgroundColor: v.color.withValues(alpha: 0.16),
+          foregroundColor: v.color,
+          child: Icon(v.icon, size: 34),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          v.label,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: scheme.onSurface,
+          ),
+        ),
+      ],
+    );
   }
- return output; 
 }
